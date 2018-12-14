@@ -16,7 +16,7 @@ import numpy as np
 from utils.files import retrieve_dataset_information
 
 parser = argparse.ArgumentParser(description='Turns a given dataset into TF records.')
-parser.add_argument('--dataset-root', dest='dataset_root', action='store',
+parser.add_argument('--dataset-root-path', dest='dataset_root_path', action='store',
                     default='/projets/thesepizenberg/deep-learning/datasets/VOC2012-fresh',
                     help='Name of the method to generate the TF records with.')
 parser.add_argument('--annotations-path', dest='annotations_path', action='store',
@@ -25,16 +25,14 @@ parser.add_argument('--annotations-path', dest='annotations_path', action='store
 parser.add_argument('--target-path', dest='target_path', action='store',
                     help='The path where the transformed annotations should be saved. '
                          'This is usually the train_label directory of your dataset.')
-parser.add_argument('--target-path', dest='target_path', action='store')
 args = parser.parse_args()
 
-
-class_names, class_colors = retrieve_dataset_information(os.path.join(args.dataset, "class_dict.csv"))
-class_colors_dictionary = dict(zip(class_names, class_colors))
-
-DATASET_ROOT = str(args.dataset_root)
+DATASET_ROOT_PATH = str(args.dataset_root_path)
 ANNOTATION_PATH = str(args.annotations_path)
 TARGET_PATH = str(args.target_path)
+
+class_names, class_colors = retrieve_dataset_information(dataset_path=DATASET_ROOT_PATH)
+class_colors_dictionary = dict(zip(class_names, class_colors))
 
 # Print the color palette retrieved from the dictionary at the root of the dataset directory.
 for class_name in class_names:

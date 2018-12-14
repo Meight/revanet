@@ -1,17 +1,18 @@
 import csv
+import glob
 import os
 
 
-def retrieve_dataset_information(dataset_info_file_path):
-    filename, file_extension = os.path.splitext(dataset_info_file_path)
+def retrieve_dataset_information(dataset_path):
+    csv_files = glob.glob(os.path.join(dataset_path, '*.csv'))
 
-    if not file_extension == ".csv":
+    if not csv_files:
         raise ValueError('You must provide the dataset information in a CSV file at its root.')
 
     class_names = []
     class_colors = []
 
-    with open(dataset_info_file_path, 'r') as dataset_info_file:
+    with open(csv_files[0], 'r') as dataset_info_file:
         file_reader = csv.reader(dataset_info_file, delimiter=',')
         _ = next(file_reader)
         for row in file_reader:
