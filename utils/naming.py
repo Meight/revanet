@@ -1,0 +1,155 @@
+"""
+Utility classes to help manage the file naming by keeping track of the execution's parameters.
+
+This is especially useful when running extensive experiments on various models and/or datasets as result data can
+accumulate quite quickly.
+"""
+
+import os
+
+
+class FilesFormatterFactory:
+    """
+    A factory used to build various file formatters with different strategies.
+    """
+    def __init__(self, mode, dataset_name, model_name, backbone_name, training_parameters, results_folder='results',
+                 verbose=False):
+        """
+
+        :param mode:                The mode the model is in. Can be one of `training', `validation` or `test`.
+        :param dataset_name:        The name of the root directory of the dataset used in the current session.
+        :param model_name:          The name of the model used in the current session.
+        :param backbone_name:       The name of the backbone used in the current session.
+        :param training_parameters: A dictionary containing an arbitrary number of training parameters.
+        :param results_folder:      The name of the root directory where to store the session's results.
+        :param verbose:             Whether or not to print intermediate steps.
+        """
+        self.mode = mode
+        self.training_parameters = training_parameters
+        self.backbone_name = backbone_name
+        self.model_name = model_name
+        self.dataset_name = dataset_name
+        self.verbose = verbose
+
+        self.results_folder = results_folder
+        self._parameters_string = self._generate_parameters_string()
+        self._full_detailed_path = self._generate_full_detailed_path()
+
+        if not os.path.exists(self._full_detailed_path):
+            os.makedirs(self._full_detailed_path)
+
+    def _generate_full_detailed_path(self):
+        return os.path.join(self.results_folder,
+                            self.mode,
+                            self.dataset_name,
+                            self.model_name,
+                            self.backbone_name)
+
+    def _generate_parameters_string(self):
+        return '_'.join(['{}-{}'.format(self._get_initials(parameter_name), parameter_value)
+                         for parameter_name, parameter_value in self.training_parameters.items()])
+
+    def _get_initials(self, string):
+        return ''.join([x[0].upper() for x in string.split('_')])
+
+    def generate_checkpoint_name(self, current_epoch):
+        return os.path.join(self._full_detailed_path, self._parameters_string + '.ckpt')
+
+    def generate_summary_name(self, current_epoch):
+        return os.path.join(self._full_detailed_path, self._parameters_string + '.csv')
+
+    def get_checkpoint_formatter(self, saver):
+        """
+        Generates a name formatter that handles the saving and restoration of checkpoint files associated to the current
+        session.
+
+        :param saver:   Instance of a `tf.Saver` that's linked to the current session.
+        :return:        The generated checkpoint formatter.
+        """
+        return CheckpointFormatter(self.mode,
+                                   self.dataset_name,
+                                   self.model_name,
+                                   self.backbone_name,
+                                   self.training_parameters,
+                                   saver,
+                                   self.verbose)
+
+    def get_summary_formatter(self):
+        """
+        Generates a name formatter that handles the summaries of the current session.
+
+        :return: The generated summary formatter.
+        """
+        return SummaryFormatter(self.mode,
+                                self.dataset_name,
+                                self.model_name,
+                                self.backbone_name,
+                                self.training_parameters,
+                                self.verbose)
+
+
+class SummaryFormatter(FilesFormatterFactory):
+    def __init__(self, mode, dataset_name, model_name, backbone_name, training_parameters, verbose=False):
+        super().__init__(mode, dataset_name, model_name, backbone_name, training_parameters, verbose=verbose)
+        self.header_created = False
+        self.current_epoch = 0
+
+    def update(self, current_epoch, measures_dictionary, column_margin=2, precision=3, verbose=False):
+        """
+        Updates the summary file associated with the current ongoing session.
+
+        :param current_epoch:       The epoch associated to the record that's about to be written.
+        :param measures_dictionary: An ordered dictionary containing an arbitrary set of measures.
+        :param column_margin:       The width in characters of each column in the resulting summary file.
+        :param precision:           The floating point precision to print the measures in the dictionary.
+        :param verbose:             Whether or not to print intermediate steps.
+        """
+        self.current_epoch = current_epoch
+        column_width = len(max(measures_dictionary.keys(), key=len)) + column_margin
+
+        with open(self.generate_summary_name(current_epoch=self.current_epoch), 'a+') as summary_file:
+            if not self.header_created:
+                summary_file.write(self._generate_header(column_names=measures_dictionary.keys(),
+                                                         column_width=column_width))
+                self.header_created = True
+
+            for measure in measures_dictionary.values():
+                summary_file.write('{value:<{width}.{precision}f}'.format(value=measure,
+                                                                          width=column_width,
+                                                                          precision=precision))
+
+            summary_file.write('\n')
+
+        if self.verbose or verbose:
+            print('Updated session summary at {}.'.format(self.generate_summary_name(self.current_epoch)))
+
+    @staticmethod
+    def _generate_header(column_names, column_width):
+        return ''.join(['{0:<{width}}'.format(column_name, width=column_width)
+                        for column_name in column_names]) + '\n'
+
+
+class CheckpointFormatter(FilesFormatterFactory):
+    def __init__(self, mode, dataset_name, model_name, backbone_name, training_parameters, saver, verbose=False):
+        super().__init__(mode, dataset_name, model_name, backbone_name, training_parameters, verbose=verbose)
+        self.saver = saver
+        self.current_epoch = 0
+
+    def save(self, session, current_epoch, verbose=False):
+        """
+        Saves a checkpoint file following the naming policy defined by this formatter.
+
+        :param session:         The ongoing `tf.Session`.
+        :param current_epoch:   The epoch associated to the current checkpoint file.
+        :param verbose:         Whether or not print intermediate steps.
+        """
+        self.current_epoch = current_epoch
+        self.saver.save(session, self.generate_checkpoint_name(current_epoch=self.current_epoch))
+
+        if self.verbose or verbose:
+            print('Saved checkpoints for epoch {} at {}.'.format(self.current_epoch,
+                                                                 self.generate_checkpoint_name(
+                                                                     current_epoch=self.current_epoch)))
+
+    def restore(self, session, model_checkpoint_name):
+        self.saver.restore(session, model_checkpoint_name)
