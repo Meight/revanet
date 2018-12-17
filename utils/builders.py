@@ -1,7 +1,10 @@
+from pathlib import Path
+
 from tensorflow.contrib import slim
 from frontends import resnet_v2
 import os
 
+from models.BiSeNet import build_bisenet
 
 available_backbones = {
     'ResNet50': {
@@ -19,6 +22,10 @@ available_backbones = {
         'model': resnet_v2.resnet_v2_152,
         'scope': 'resnet_v2_152',
     },
+}
+
+available_models = {
+    'BiSeNet': build_bisenet
 }
 
 
@@ -45,3 +52,34 @@ class BackboneBuilder:
                                               ignore_missing_vars=True)
 
         return logits, end_points, scope, init_fn
+
+
+class ModelBuilder:
+    def __init__(self,
+                 number_of_classes,
+                 input_size,
+                 backbone_name="ResNet101",
+                 is_training=True,
+                 weights_directory='model'):
+        self.input_size = input_size
+        self.number_of_classes = number_of_classes
+        self.is_training = is_training
+        self.backbone_name = backbone_name
+        self.weights_directory = weights_directory
+
+    def build(self, model_name, inputs):
+        if model_name not in available_models.keys():
+            raise ValueError('Requested model {} is not available.'.format(model_name))
+
+        self.download_backbone_weights(backbone_name=self.backbone_name)
+
+        return available_models[model_name](inputs,
+                                            number_of_classes=self.number_of_classes,
+                                            preset_model=model_name,
+                                            backbone_name=self.backbone_name,
+                                            is_training=self.is_training)
+
+    def download_backbone_weights(self, backbone_name, only_if_not_exists=True):
+        if only_if_not_exists and not Path(self.weights_directory).exists():
+            from utils.download import download_model_weights
+            download_model_weights(model_name=backbone_name, weights_directory=self.weights_directory)
