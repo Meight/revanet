@@ -57,10 +57,10 @@ def gather_multi_label_data(dataset_directory):
     return paths
 
 
-def get_all_available_annotation_resized_tensors_for_image(input_shape,
-                                                           image_masks_dictionary,
-                                                           class_colors_dictionary,
-                                                           mode='linear'):
+def get_available_annotation_resized_tensors_for_image(input_shape,
+                                                       image_masks_dictionary,
+                                                       class_colors_dictionary,
+                                                       mode='linear'):
     available_modes = ['linear']
     n_hot_encoded_tensors = []
 
