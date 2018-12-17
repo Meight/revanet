@@ -1,5 +1,6 @@
 """ Various data augmentation utils.
 """
+import random
 
 
 def augment_data(input_image, output_image, input_size):
@@ -61,3 +62,22 @@ def resize_to_size(image, label=None, desired_size=256):
 
     return image, label
 
+
+def crop_randomly(image, annotation, crop_height, crop_width):
+    if (image.shape[0] != annotation.shape[0]) or (image.shape[1] != annotation.shape[1]):
+        raise ValueError('Image and label must have the same dimensions! {} vs {}'.format(image.shape,
+                                                                                          annotation.shape))
+
+    if (crop_width <= image.shape[1]) and (crop_height <= image.shape[0]):
+        x = random.randint(0, image.shape[1] - crop_width)
+        y = random.randint(0, image.shape[0] - crop_height)
+
+        if len(annotation.shape) == 3:
+            return image[y:y + crop_height, x:x + crop_width, :], annotation[y:y + crop_height, x:x + crop_width, :]
+        else:
+            return image[y:y + crop_height, x:x + crop_width, :], annotation[y:y + crop_height, x:x + crop_width]
+    else:
+        raise ValueError('Crop shape ({}, {}) exceeds image dimensions ({}, {}).'.format(crop_height,
+                                                                                         crop_width,
+                                                                                         image.shape[0],
+                                                                                         image.shape[1]))

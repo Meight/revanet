@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from sklearn.metrics import precision_score, recall_score, f1_score
 import numpy as np
 
@@ -22,6 +24,16 @@ class SegmentationEvaluator:
         for measure_name in self.active_measures:
             measure_function = self._get_available_measures_with_functions()[measure_name]
             self.measures_history[measure_name] = measure_function(prediction, annotation)
+
+    def get_averaged_measures(self, current_epoch):
+        averaged_measures = OrderedDict({'epoch': current_epoch})
+
+        for measure_name in self.active_measures:
+            averaged_measures.update({
+                measure_name: np.mean(self.measures_history[measure_name])
+            })
+
+        return averaged_measures
 
     def _get_available_measures_with_functions(self):
         return {
