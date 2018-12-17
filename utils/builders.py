@@ -6,32 +6,35 @@ import os
 
 from models.BiSeNet import build_bisenet
 
-available_backbones = {
+AVAILABLE_BACKBONES = {
     'ResNet50': {
         'arguments_scope': resnet_v2.resnet_arg_scope,
         'model': resnet_v2.resnet_v2_50,
         'scope': 'resnet_v2_50',
+        'weights_url': 'https://s3.amazonaws.com/pretrained-weights/resnet_v2_50.ckpt'
     },
     'ResNet101': {
         'arguments_scope': resnet_v2.resnet_arg_scope,
         'model': resnet_v2.resnet_v2_101,
         'scope': 'resnet_v2_101',
+        'weights_url': 'https://s3.amazonaws.com/pretrained-weights/resnet_v2_101.ckpt'
     },
     'ResNet152': {
         'arguments_scope': resnet_v2.resnet_arg_scope,
         'model': resnet_v2.resnet_v2_152,
         'scope': 'resnet_v2_152',
+        'weights_url': 'https://s3.amazonaws.com/pretrained-weights/resnet_v2_152.ckpt'
     },
 }
 
-available_models = {
+AVAILABLE_MODELS = {
     'BiSeNet': build_bisenet
 }
 
 
 class BackboneBuilder:
     def __init__(self, backbone_name, is_training=True, weights_directory='models'):
-        if backbone_name not in available_backbones:
+        if backbone_name not in AVAILABLE_BACKBONES:
             raise ValueError('Backbone {} is not currently available.'.format(backbone_name))
 
         self.backbone_name = backbone_name
@@ -39,8 +42,8 @@ class BackboneBuilder:
         self.weights_directory = weights_directory
 
     def build(self, inputs):
-        model = available_backbones[self.backbone_name]['model']
-        scope = available_backbones[self.backbone_name]['scope']
+        model = AVAILABLE_BACKBONES[self.backbone_name]['model']
+        scope = AVAILABLE_BACKBONES[self.backbone_name]['scope']
 
         logits, end_points = model(inputs,
                                    is_training=self.is_training,
@@ -75,12 +78,12 @@ class ModelBuilder:
         :param inputs:      The inputs of the built model.
         :return:            The network and its initialization function.
         """
-        if model_name not in available_models.keys():
+        if model_name not in AVAILABLE_MODELS.keys():
             raise ValueError('Requested model {} is not available.'.format(model_name))
 
         self.download_backbone_weights(backbone_name=self.backbone_name)
 
-        return available_models[model_name](inputs,
+        return AVAILABLE_MODELS[model_name](inputs,
                                             number_of_classes=self.number_of_classes,
                                             preset_model=model_name,
                                             backbone_name=self.backbone_name,
