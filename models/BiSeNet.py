@@ -52,11 +52,10 @@ def feature_fusion_module(input_1, input_2, n_filters):
     return net
 
 
-def build_bisenet(inputs, num_classes, preset_model='BiSeNet', frontend="ResNet101", weight_decay=1e-5,
-                  is_training=True, weights_directory="models"):
-    _, end_points, _, init_fn = BackboneBuilder(backbone_name=frontend,
-                                                                  is_training=is_training,
-                                                                  weights_directory=weights_directory).build(inputs=inputs)
+def build_bisenet(inputs, number_of_classes, backbone="ResNet101", is_training=True, weights_directory="models"):
+    _, end_points, _, init_fn = BackboneBuilder(backbone_name=backbone,
+                                                is_training=is_training,
+                                                weights_directory=weights_directory).build(inputs=inputs)
 
     # Context path.
     net_4 = attention_refinement_module(end_points['pool4'], n_filters=512)
@@ -77,9 +76,9 @@ def build_bisenet(inputs, num_classes, preset_model='BiSeNet', frontend="ResNet1
 
     context_net = tf.concat([net_4, net_5_scaled], axis=-1)
 
-    net = feature_fusion_module(input_1=spatial_net, input_2=context_net, n_filters=num_classes)
+    net = feature_fusion_module(input_1=spatial_net, input_2=context_net, n_filters=number_of_classes)
     net = upsampling(net, scale=8)
 
-    net = slim.conv2d(net, num_classes, [1, 1], activation_fn=None, scope='logits')
+    net = slim.conv2d(net, number_of_classes, [1, 1], activation_fn=None, scope='logits')
 
     return net, init_fn
