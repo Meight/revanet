@@ -17,16 +17,6 @@ from utils.utils import build_images_association_dictionary, gather_multi_label_
     get_available_annotation_resized_tensors_for_image
 from utils.validation import SegmentationEvaluator
 
-
-def str2bool(v):
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--is-multi-label',
                     action='store_true',
@@ -52,10 +42,6 @@ parser.add_argument('--validate-every',
                     type=int,
                     default=1,
                     help='How often to perform validation (epochs)')
-parser.add_argument('--image',
-                    type=str,
-                    default=None,
-                    help='The image you want to predict on. Only valid in "predict" mode.')
 parser.add_argument('--continue-training',
                     action='store_true',
                     default=False,
