@@ -185,7 +185,7 @@ paths = None
 
 if not IS_MULTI_LABEL_CLASSIFICATION:
     train_input_names, train_output_names, validation_input_names, \
-    validation_output_names, test_input_names, test_output_names = utils.prepare_data(dataset_dir=args.dataset)
+    validation_output_names, test_input_names, test_output_names = utils.prepare_data(dataset_directory=DATASET_NAME)
 else:
     paths = gather_multi_label_data(dataset_directory=DATASET_NAME)
 

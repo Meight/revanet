@@ -101,31 +101,31 @@ def to_n_hot_encoded(masks_dictionary, class_names):
     return np.asarray([1 if class_name in masks_dictionary.keys() else 0 for class_name in class_names])
 
 
-def prepare_data(dataset_dir):
+def prepare_data(dataset_directory):
     train_input_names = []
     train_output_names = []
     val_input_names = []
     val_output_names = []
     test_input_names = []
     test_output_names = []
-    for file in os.listdir(dataset_dir + "/train"):
+    for file in os.listdir(dataset_directory + "/train"):
         cwd = os.getcwd()
-        train_input_names += glob.glob(cwd + "/" + dataset_dir + "/train/" + file + "*")
-    for file in os.listdir(dataset_dir + "/train_labels"):
+        train_input_names += glob.glob(cwd + "/" + dataset_directory + "/train/" + file + "*")
+    for file in os.listdir(dataset_directory + "/train_labels"):
         cwd = os.getcwd()
-        train_output_names += glob.glob(cwd + "/" + dataset_dir + "/train_labels/" + file + "*")
-    for file in os.listdir(dataset_dir + "/val"):
+        train_output_names += glob.glob(cwd + "/" + dataset_directory + "/train_labels/" + file + "*")
+    for file in os.listdir(dataset_directory + "/val"):
         cwd = os.getcwd()
-        val_input_names += glob.glob(cwd + "/" + dataset_dir + "/val/" + file + "*")
-    for file in os.listdir(dataset_dir + "/val_labels"):
+        val_input_names += glob.glob(cwd + "/" + dataset_directory + "/val/" + file + "*")
+    for file in os.listdir(dataset_directory + "/val_labels"):
         cwd = os.getcwd()
-        val_output_names += glob.glob(cwd + "/" + dataset_dir + "/val_labels/" + file + "*")
-    for file in os.listdir(dataset_dir + "/test"):
+        val_output_names += glob.glob(cwd + "/" + dataset_directory + "/val_labels/" + file + "*")
+    for file in os.listdir(dataset_directory + "/test"):
         cwd = os.getcwd()
-        test_input_names += glob.glob(cwd + "/" + dataset_dir + "/test/" + file + "*")
-    for file in os.listdir(dataset_dir + "/test_labels"):
+        test_input_names += glob.glob(cwd + "/" + dataset_directory + "/test/" + file + "*")
+    for file in os.listdir(dataset_directory + "/test_labels"):
         cwd = os.getcwd()
-        test_output_names += glob.glob(cwd + "/" + dataset_dir + "/test_labels/" + file + "*")
+        test_output_names += glob.glob(cwd + "/" + dataset_directory + "/test_labels/" + file + "*")
     train_input_names.sort(), train_output_names.sort(), val_input_names.sort(), val_output_names.sort(), test_input_names.sort(), test_output_names.sort()
     return train_input_names, train_output_names, val_input_names, val_output_names, test_input_names, test_output_names
 
