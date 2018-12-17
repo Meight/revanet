@@ -3,12 +3,13 @@ import numpy as np
 
 
 class SegmentationEvaluator:
-    def __init__(self, measure_names):
+    def __init__(self, measure_names, number_of_classes):
         for measure_name in measure_names:
             if measure_name not in self._get_available_measures_with_functions().keys():
                 raise ValueError('Measure {} is not supported for validation.'.format(measure_name))
 
         self.active_measures = measure_names
+        self.number_of_classes = number_of_classes
 
         self.measures_history = {}
         self.initialize_history()
@@ -43,13 +44,12 @@ class SegmentationEvaluator:
 
         return float(count) / float(total)
 
-    @staticmethod
-    def compute_accuracy_per_class(prediction, annotation, classes_count):
+    def compute_accuracy_per_class(self, prediction, annotation):
         total = []
-        for val in range(classes_count):
+        for val in range(self.number_of_classes):
             total.append((annotation == val).sum())
 
-        count = [0.0] * classes_count
+        count = [0.0] * self.number_of_classes
         for i in range(len(annotation)):
             if prediction[i] == annotation[i]:
                 count[int(prediction[i])] = count[int(prediction[i])] + 1.0
@@ -78,6 +78,4 @@ class SegmentationEvaluator:
             intersection[index] = float(np.sum(np.logical_and(label_i, prediction_i)))
             union[index] = float(np.sum(np.logical_or(label_i, prediction_i)))
 
-
-        mean_iou = np.mean(intersection / union)
-        return mean_iou
+        return np.mean(intersection / union)
