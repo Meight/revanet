@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib import slim
 
-from builders.frontend_builder import BackboneBuilder
+from utils.builders import BackboneBuilder
 
 
 def upsampling(inputs, scale):
