@@ -6,6 +6,7 @@ accumulate quite quickly.
 """
 
 import os
+from colorama import init as colorama_init, Fore, Back, Style
 
 
 class FilesFormatterFactory:
@@ -58,6 +59,9 @@ class FilesFormatterFactory:
     def generate_summary_name(self, current_epoch):
         return os.path.join(self._full_detailed_path, self._parameters_string + '.csv')
 
+    def generate_logs_name(self):
+        return os.path.join(self._full_detailed_path, self._parameters_string + '.log')
+
     def get_checkpoint_formatter(self, saver):
         """
         Generates a name formatter that handles the saving and restoration of checkpoint files associated to the current
@@ -86,6 +90,14 @@ class FilesFormatterFactory:
                                 self.backbone_name,
                                 self.training_parameters,
                                 self.verbose)
+
+    def get_logs_formatter(self):
+        return LogsFormatter(self.mode,
+                             self.dataset_name,
+                             self.model_name,
+                             self.backbone_name,
+                             self.training_parameters,
+                             self.verbose)
 
 
 class SummaryFormatter(FilesFormatterFactory):
@@ -153,3 +165,35 @@ class CheckpointFormatter(FilesFormatterFactory):
 
     def restore(self, session, model_checkpoint_name):
         self.saver.restore(session, model_checkpoint_name)
+
+
+class LogsFormatter(FilesFormatterFactory):
+    def __init__(self, mode, dataset_name, model_name, backbone_name, training_parameters, verbose=False):
+        super().__init__(mode, dataset_name, model_name, backbone_name, training_parameters, verbose=verbose)
+
+        colorama_init()
+
+    def write(self):
+        header_width = max([len(header) for header in self.training_parameters.keys()])
+
+        for header, value in self.training_parameters.items():
+            print(self._pretty_print_line(header, value, width=header_width + 2))
+
+        if self.verbose:
+            print('Logs written at {}'.format(self.generate_logs_name()))
+
+    def _pretty_print_line(self, header, value, tabs=0, width=10):
+        return '{spacing}{header:{width}}{value}'.format(spacing=' ' * tabs,
+                                                         header=header.capitalize().replace('_', ' ') + ':',
+                                                         width=width,
+                                                         value=self._pretty_print_value(value)) + Style.RESET_ALL
+
+    def _pretty_print_value(self, value):
+        if isinstance(value, bool):
+            return self._pretty_print_boolean(value)
+        else:
+            return Fore.CYAN + '{}'.format(value)
+
+    @staticmethod
+    def _pretty_print_boolean(value):
+        return Fore.RED + '❌' if not value else Fore.GREEN + '✓'
