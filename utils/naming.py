@@ -32,7 +32,7 @@ class FilesFormatterFactory:
         self.dataset_name = dataset_name
         self.verbose = verbose
 
-        self.results_folder = results_folder
+        self.results_folder = os.path.join('datasets', dataset_name, results_folder)
         self._parameters_string = self._generate_parameters_string()
         self._full_detailed_path = self._generate_full_detailed_path()
 
@@ -42,7 +42,6 @@ class FilesFormatterFactory:
     def _generate_full_detailed_path(self):
         return os.path.join(self.results_folder,
                             self.mode,
-                            self.dataset_name,
                             self.model_name,
                             self.backbone_name)
 
@@ -196,4 +195,4 @@ class LogsFormatter(FilesFormatterFactory):
 
     @staticmethod
     def _pretty_print_boolean(value):
-        return Fore.RED + '❌' if not value else Fore.GREEN + '✓'
+        return Fore.RED + 'no' if not value else Fore.GREEN + 'yes'

@@ -1,6 +1,7 @@
 """ Various data augmentation utils.
 """
 import random
+import cv2
 
 
 def augment_data(input_image, output_image, input_size):
