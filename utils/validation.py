@@ -41,6 +41,9 @@ class SegmentationEvaluator:
         :param prediction: The predicted image.
         :param annotation: The annotation image.
         """
+        prediction = prediction.flatten()
+        annotation = annotation.flatten()
+
         for measure_name in self.active_measures:
             measure_function = self._get_available_measures_with_functions()[measure_name]
             self.measures_history[measure_name] = measure_function(prediction, annotation)
