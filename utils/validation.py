@@ -5,16 +5,16 @@ import numpy as np
 
 
 class SegmentationEvaluator:
-    def __init__(self, measure_names, number_of_classes):
-        """
-        A segmentation evaluator which can compute a set of measures when given a prediction and an associated
-        annotation.
+    """
+    A segmentation evaluator which can compute a set of measures when given a prediction and an associated
+    annotation.
 
-        :param measure_names:       A list of supported measures to compute every time the evaluator is fed with a
+    :param measure_names:       A list of supported measures to compute every time the evaluator is fed with a
                                     couple of a prediction and its annotation.
-        :param number_of_classes:   The number of classes in the dataset. Required for the computation of some
+    :param number_of_classes:   The number of classes in the dataset. Required for the computation of some
                                     of the provided measures.
-        """
+    """
+    def __init__(self, measure_names, number_of_classes):
         for measure_name in measure_names:
             if measure_name not in self._get_available_measures_with_functions().keys():
                 raise ValueError('Measure {} is not supported for validation.'.format(measure_name))

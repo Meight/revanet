@@ -8,9 +8,9 @@ import time
 import numpy as np
 import tensorflow as tf
 
-from builders import model_builder
 from utils import utils, segmentation
 from utils.augmentation import augment_data
+from utils.builders import ModelBuilder
 from utils.files import retrieve_dataset_information
 from utils.naming import FilesFormatterFactory
 from utils.utils import build_images_association_dictionary, gather_multi_label_data, \
@@ -121,7 +121,7 @@ files_formatter_factory = FilesFormatterFactory(mode='training',
                                                 results_folder=RESULTS_DIRECTORY)
 
 DATASET_INFORMATION_FILE_PATH = os.path.join(args.dataset, "information.csv")
-class_names_list, class_colors = retrieve_dataset_information(dataset_path=DATASET_INFORMATION_FILE_PATH)
+class_names_list, class_colors = retrieve_dataset_information(dataset_path=DATASET_NAME)
 class_colors_dictionary = dict(zip(class_names_list, class_colors))
 number_of_classes = len(class_colors)
 
@@ -131,17 +131,14 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 
-# Compute your softmax cross entropy loss
 input_tensor = tf.placeholder(tf.float32, shape=[None, None, None, 3])
 output_tensor = tf.placeholder(tf.float32, shape=[None, None, None, number_of_classes])
 
-predictions_tensor, init_fn = model_builder.build_model(model_name=MODEL_NAME,
-                                                        frontend=BACKBONE_NAME,
-                                                        net_input=input_tensor,
-                                                        num_classes=number_of_classes,
-                                                        crop_width=INPUT_SIZE,
-                                                        crop_height=INPUT_SIZE,
-                                                        is_training=True)
+model_builder = ModelBuilder(number_of_classes=number_of_classes,
+                             input_size=INPUT_SIZE,
+                             backbone_name=BACKBONE_NAME,
+                             is_training=True)
+predictions_tensor, init_fn = model_builder.build(model_name=MODEL_NAME, inputs=input_tensor)
 
 weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
 unc = tf.where(tf.equal(tf.reduce_sum(output_tensor, axis=-1), 0),
