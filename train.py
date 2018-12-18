@@ -146,17 +146,12 @@ unc = tf.where(tf.equal(tf.reduce_sum(output_tensor, axis=-1), 0),
                tf.zeros(shape=weights_shape),
                tf.ones(shape=weights_shape))
 
-if not IS_MULTI_LABEL_CLASSIFICATION:
-    print('Using softmax cross entropy.')
-    adapted_loss = tf.nn.softmax_cross_entropy_with_logits_v2(logits=predictions_tensor,
-                                                              labels=output_tensor)
-else:
-    print('Using sigmoid cross entropy.')
-    adapted_loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=predictions_tensor,
-                                                           labels=output_tensor)
+adapted_loss = tf.nn.sigmoid_cross_entropy_with_logits \
+    if IS_MULTI_LABEL_CLASSIFICATION else tf.nn.softmax_cross_entropy_with_logits_v2
 
 loss = tf.reduce_mean(tf.losses.compute_weighted_loss(weights=tf.cast(unc, tf.float32),
-                                                      losses=adapted_loss))
+                                                      losses=adapted_loss(logits=predictions_tensor,
+                                                                          labels=output_tensor)))
 
 opt = tf.train.RMSPropOptimizer(learning_rate=LEARNING_RATE,
                                 decay=0.995,
