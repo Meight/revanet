@@ -58,8 +58,8 @@ def feature_fusion_module(input_1, input_2, n_filters):
     return net
 
 
-def build_bisenet(inputs, number_of_classes, backbone="ResNet101", is_training=True, weights_directory="models"):
-    _, end_points, _, init_fn = BackboneBuilder(backbone_name=backbone,
+def build_bisenet(inputs, number_of_classes, backbone_name="ResNet101", is_training=True, weights_directory="models"):
+    _, end_points, _, init_fn = BackboneBuilder(backbone_name=backbone_name,
                                                 is_training=is_training,
                                                 weights_directory=weights_directory).build(inputs=inputs)
 

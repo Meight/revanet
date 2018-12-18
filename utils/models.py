@@ -35,7 +35,6 @@ class ModelBuilder:
 
         return AVAILABLE_MODELS[model_name](inputs,
                                             number_of_classes=self.number_of_classes,
-                                            preset_model=model_name,
                                             backbone_name=self.backbone_name,
                                             is_training=self.is_training)
 
