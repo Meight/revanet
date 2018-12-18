@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import argparse
-import os
 import random
 import time
 
@@ -72,7 +71,7 @@ parser.add_argument('--backbone',
                     help='The backbone to use. See frontend_builder.py for supported models')
 parser.add_argument('--results-directory',
                     type=str,
-                    default='/projets/thesepizenberg/deep-learning/segmentation-suite',
+                    default='/projets/thesepizenberg/deep-learning/revanet/',
                     help='Path to the directory where the results are to be stored.')
 args = parser.parse_args()
 
