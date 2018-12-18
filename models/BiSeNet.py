@@ -1,20 +1,26 @@
 import tensorflow as tf
 from tensorflow.contrib import slim
 
-from utils.builders import BackboneBuilder
+from utils.backbones import BackboneBuilder
 
 
 def upsampling(inputs, scale):
     return tf.image.resize_bilinear(inputs, size=[tf.shape(inputs)[1] * scale, tf.shape(inputs)[2] * scale])
 
 
-def conv_upscale_block(inputs, n_filters, kernel_size=[3, 3], scale=2):
+def conv_upscale_block(inputs, n_filters, kernel_size=None, scale=2):
+    if kernel_size is None:
+        kernel_size = [3, 3]
+
     net = tf.nn.relu(slim.batch_norm(inputs, fused=True))
     net = slim.conv2d_transpose(net, n_filters, kernel_size=[3, 3], stride=[scale, scale], activation_fn=None)
     return net
 
 
-def conv2d_block(inputs, n_filters, kernel_size=[3, 3], strides=1):
+def conv2d_block(inputs, n_filters, kernel_size=None, strides=1):
+    if kernel_size is None:
+        kernel_size = [3, 3]
+
     net = slim.conv2d(inputs, n_filters, kernel_size, stride=[strides, strides], activation_fn=None, normalizer_fn=None)
     net = tf.nn.relu(slim.batch_norm(net, fused=True))
     return net

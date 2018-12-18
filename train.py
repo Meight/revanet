@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from utils import utils, segmentation
 from utils.augmentation import augment_data
-from utils.builders import ModelBuilder
+from utils.models import ModelBuilder
 from utils.files import retrieve_dataset_information
 from utils.naming import FilesFormatterFactory
 from utils.utils import build_images_association_dictionary, gather_multi_label_data, \
