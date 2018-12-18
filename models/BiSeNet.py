@@ -28,7 +28,7 @@ def conv2d_block(inputs, n_filters, kernel_size=None, strides=1):
 
 def attention_refinement_module(inputs, n_filters):
     # Global average pooling.
-    net = tf.reduce_mean(inputs, [1, 2], keep_dims=True)
+    net = tf.reduce_mean(inputs, [1, 2], keepdims=True)
 
     net = slim.conv2d(net, n_filters, kernel_size=[1, 1])
     net = slim.batch_norm(net, fused=True)
@@ -59,9 +59,9 @@ def feature_fusion_module(input_1, input_2, n_filters):
 
 
 def build_bisenet(inputs, number_of_classes, weights_directory, backbone_name="ResNet101", is_training=True):
-    _, end_points, _, init_fn = BackboneBuilder(backbone_name=backbone_name,
-                                                is_training=is_training,
-                                                weights_directory=weights_directory).build(inputs=inputs)
+    logits, end_points, scope, init_fn = BackboneBuilder(backbone_name=backbone_name,
+                                                         is_training=is_training,
+                                                         weights_directory=weights_directory).build(inputs=inputs)
 
     # Context path.
     net_4 = attention_refinement_module(end_points['pool4'], n_filters=512)

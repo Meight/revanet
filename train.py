@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import argparse
+import os
 import random
 import time
 
@@ -47,7 +48,7 @@ parser.add_argument('--continue-training',
                     help='Whether to continue training from a checkpoint')
 parser.add_argument('--dataset-name',
                     type=str,
-                    default="CamVid",
+                    default='voc-chh',
                     help='Dataset you are using.')
 parser.add_argument('--input-size',
                     type=int,
@@ -82,6 +83,7 @@ INPUT_SIZE = int(args.input_size)
 is_dataset_augmented = False
 
 DATASET_NAME = str(args.dataset_name)
+DATASET_DIRECTORY = os.path.join('datasets', DATASET_NAME)
 RESULTS_DIRECTORY = str(args.results_directory)
 MODEL_NAME = str(args.model_name)
 BACKBONE_NAME = str(args.backbone_name)
@@ -161,9 +163,12 @@ utils.count_parameters()
 if init_fn is not None:
     init_fn(session)
 
-model_checkpoint_name = "checkpoints/latest_model_" + args.model + "_" + DATASET_NAME + ".ckpt"
+model_checkpoint_name = "checkpoints/latest_model_{}_{}.ckpt".format(MODEL_NAME, DATASET_NAME)
 checkpoint_formatter = files_formatter_factory.get_checkpoint_formatter(saver=tf.train.Saver(max_to_keep=1000))
 summary_formatter = files_formatter_factory.get_summary_formatter()
+logs_formatter = files_formatter_factory.get_logs_formatter()
+
+logs_formatter.write()
 
 if CONTINUE_TRAINING:
     print('Loaded latest model checkpoint.')
@@ -174,9 +179,10 @@ paths = None
 
 if not IS_MULTI_LABEL_CLASSIFICATION:
     train_input_names, train_output_names, validation_input_names, \
-    validation_output_names, test_input_names, test_output_names = utils.prepare_data(dataset_directory=DATASET_NAME)
+    validation_output_names, test_input_names, test_output_names = utils.prepare_data(dataset_directory=
+                                                                                      DATASET_DIRECTORY)
 else:
-    paths = gather_multi_label_data(dataset_directory=DATASET_NAME)
+    paths = gather_multi_label_data(dataset_directory=DATASET_DIRECTORY)
 
     train_input_names = paths['train'].keys()
     validation_input_names = paths['val'].keys()
@@ -303,6 +309,6 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
         h, m = divmod(m, 60)
 
         if s != 0:
-            print("Remaining training time: {:02d}:{:02d}:{:02d}.".format(h, m, s))
+            print("Remaining training time: {:02d}:{:02d}:{:02d}.".format(int(h), int(m), int(s)))
         else:
             print("Training completed.")

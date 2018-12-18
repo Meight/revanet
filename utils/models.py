@@ -33,7 +33,7 @@ class ModelBuilder:
 
         self.download_backbone_weights(backbone_name=self.backbone_name)
 
-        return AVAILABLE_MODELS[model_name](inputs,
+        return AVAILABLE_MODELS[model_name](inputs=inputs,
                                             number_of_classes=self.number_of_classes,
                                             backbone_name=self.backbone_name,
                                             is_training=self.is_training,

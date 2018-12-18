@@ -21,6 +21,9 @@ TRAIN_SCRIPT_DIR="/projets/thesepizenberg/deep-learning/revanet"
 srun keras-py3-tf virtualenv --system-site-packages /users/thesepizenberg/mlebouch/venv
 wait
 
+srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/pip3 install colorama
+wait
+
 srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$TRAIN_SCRIPT_DIR/train.py" \
                 --number-of-epochs=75 \
                 --save-weights-every=20 \

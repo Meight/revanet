@@ -42,9 +42,9 @@ class BackboneBuilder:
                                    is_training=self.is_training,
                                    scope=scope)
 
-        init_fn = slim.assign_from_checkpoint(model_path=os.path.join(self.weights_directory,
+        init_fn = slim.assign_from_checkpoint_fn(model_path=os.path.join(self.weights_directory,
                                                                       scope + '.ckpt'),
-                                              var_list=slim.get_model_variables(scope),
-                                              ignore_missing_vars=True)
+                                                 var_list=slim.get_model_variables(scope),
+                                                 ignore_missing_vars=True)
 
         return logits, end_points, scope, init_fn
