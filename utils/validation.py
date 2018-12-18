@@ -74,11 +74,23 @@ class SegmentationEvaluator:
         return {
             'accuracy': self.compute_accuracy,
             'accuracy_per_class': self.compute_accuracy_per_class,
-            'precision': precision_score,
-            'recall': recall_score,
-            'f1': f1_score,
+            'precision': self.compute_precision,
+            'recall': self.compute_recall,
+            'f1': self.compute_f1,
             'iou': self.compute_mean_iou,
         }
+
+    @staticmethod
+    def compute_precision(prediction, annotation):
+        return precision_score(y_true=annotation, y_pred=prediction, average='weighted')
+
+    @staticmethod
+    def compute_recall(prediction, annotation):
+        return recall_score(y_true=annotation, y_pred=prediction, average='weighted')
+
+    @staticmethod
+    def compute_f1(prediction, annotation):
+        return f1_score(y_true=annotation, y_pred=prediction, average='weighted')
 
     @staticmethod
     def compute_accuracy(prediction, annotation):
