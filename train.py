@@ -108,7 +108,7 @@ TRAINING_PARAMETERS = {
     'augmented': is_dataset_augmented
 }
 
-validation_measures = ['scores', 'scores_per_class', 'precision', 'recall', 'f1', 'iou']
+validation_measures = ['accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou']
 
 files_formatter_factory = FilesFormatterFactory(mode='training',
                                                 dataset_name=DATASET_NAME,
