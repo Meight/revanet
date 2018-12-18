@@ -4,7 +4,7 @@ import os
 
 
 def retrieve_dataset_information(dataset_path):
-    csv_files = glob.glob(os.path.join(dataset_path, '*.csv'))
+    csv_files = glob.glob(os.path.join('datasets', dataset_path, '*.csv'))
 
     if not csv_files:
         raise ValueError('You must provide the dataset information in a CSV file at its root.')
