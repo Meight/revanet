@@ -91,6 +91,7 @@ MODEL_NAME = str(args.model_name)
 BACKBONE_NAME = str(args.backbone_name)
 
 NUMBER_OF_EPOCHS = int(args.number_of_epochs)
+FIRST_EPOCH = int(args.first_epoch)
 BATCH_SIZE = int(args.batch_size)
 LEARNING_RATE = float(args.learning_rate)
 NUMBER_OF_VALIDATION_IMAGES = int(args.number_of_validation_images)
@@ -207,17 +208,17 @@ else:
 
 assert IS_MULTI_LABEL_CLASSIFICATION or images_association is not None
 
-for epoch in range(args.epoch_start_i, args.num_epochs):
+for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     current_losses = []
     samples_seen = 0
 
-    # Equivalent to shuffling
-    input_indices = np.random.permutation(len(train_input_names))
     number_of_training_images = len(train_input_names)
+    input_indices = np.random.permutation(number_of_training_images)
 
     number_of_steps = len(train_output_names) // BATCH_SIZE
     start_time = time.time()
     epoch_start_time = time.time()
+
     for current_step_index in range(number_of_steps):
         input_image_batch = []
         output_image_batch = []
