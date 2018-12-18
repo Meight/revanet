@@ -13,7 +13,7 @@ class ModelBuilder:
                  input_size,
                  backbone_name="ResNet101",
                  is_training=True,
-                 weights_directory='model'):
+                 weights_directory='models/checkpoints'):
         self.input_size = input_size
         self.number_of_classes = number_of_classes
         self.is_training = is_training
