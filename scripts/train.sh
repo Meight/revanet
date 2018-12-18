@@ -33,5 +33,5 @@ srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$TRAIN_SCRIPT_
                 --backbone-name=ResNet101 \
                 --input-size=256 \
                 --batch-size=1 \
-                --dataset-name=voc-chh
+                --dataset-name=voc-ha
 wait
