@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from tensorflow.contrib import slim
-from frontends import resnet_v2
+from models.backbones import resnet_v2
 import os
 
 from models.BiSeNet import build_bisenet
