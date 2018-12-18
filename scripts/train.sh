@@ -27,7 +27,7 @@ srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$TRAIN_SCRIPT_
                 --validate-every=1 \
                 --number-of-validation-images=1449 \
                 --model-name=BiSeNet \
-                --backbone=ResNet101 \
+                --backbone-name=ResNet101 \
                 --input-size=256 \
                 --batch-size=1 \
                 --dataset-name=voc-chh

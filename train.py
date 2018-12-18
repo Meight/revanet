@@ -17,7 +17,7 @@ from utils.utils import build_images_association_dictionary, gather_multi_label_
 from utils.validation import SegmentationEvaluator
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--is-multi-label',
+parser.add_argument('--is-multi-label-segmentation',
                     action='store_true',
                     default=False,
                     help='Whether or not to interpret the task as multi-label classification.')
@@ -65,7 +65,7 @@ parser.add_argument('--model-name',
                     type=str,
                     default="FC-DenseNet56",
                     help='The model you are using. See model_builder.py for supported models')
-parser.add_argument('--backbone',
+parser.add_argument('--backbone-name',
                     type=str,
                     default="ResNet101",
                     help='The backbone to use. See frontend_builder.py for supported models')
@@ -75,14 +75,11 @@ parser.add_argument('--results-directory',
                     help='Path to the directory where the results are to be stored.')
 args = parser.parse_args()
 
-IS_MULTI_LABEL_CLASSIFICATION: bool(args.is_multi_label)
+IS_MULTI_LABEL_CLASSIFICATION = bool(args.is_multi_label_segmentation)
 INPUT_SIZE = int(args.input_size)
 
 # No augmentation available for multi-label classification.
-is_dataset_augmented = not IS_MULTI_LABEL_CLASSIFICATION and (args.h_flip
-                                                              or args.v_flip
-                                                              or (args.brightness is not None)
-                                                              or (args.rotation is not None))
+is_dataset_augmented = False
 
 DATASET_NAME = str(args.dataset_name)
 RESULTS_DIRECTORY = str(args.results_directory)
