@@ -89,6 +89,7 @@ DATASET_NAME = str(args.dataset_name)
 RESULTS_DIRECTORY = str(args.results_directory)
 MODEL_NAME = str(args.model_name)
 BACKBONE_NAME = str(args.backbone_name)
+CONTINUE_TRAINING = bool(args.continue_training)
 
 NUMBER_OF_EPOCHS = int(args.number_of_epochs)
 FIRST_EPOCH = int(args.first_epoch)
@@ -121,7 +122,6 @@ files_formatter_factory = FilesFormatterFactory(mode='training',
                                                 verbose=True,
                                                 results_folder=RESULTS_DIRECTORY)
 
-DATASET_INFORMATION_FILE_PATH = os.path.join(args.dataset, "information.csv")
 class_names_list, class_colors = retrieve_dataset_information(dataset_path=DATASET_NAME)
 class_colors_dictionary = dict(zip(class_names_list, class_colors))
 number_of_classes = len(class_colors)
@@ -165,11 +165,11 @@ utils.count_parameters()
 if init_fn is not None:
     init_fn(session)
 
-model_checkpoint_name = "checkpoints/latest_model_" + args.model + "_" + args.dataset + ".ckpt"
+model_checkpoint_name = "checkpoints/latest_model_" + args.model + "_" + DATASET_NAME + ".ckpt"
 checkpoint_formatter = files_formatter_factory.get_checkpoint_formatter(saver=tf.train.Saver(max_to_keep=1000))
 summary_formatter = files_formatter_factory.get_summary_formatter()
 
-if args.continue_training:
+if CONTINUE_TRAINING:
     print('Loaded latest model checkpoint.')
     checkpoint_formatter.restore(session, model_checkpoint_name)
 
@@ -264,7 +264,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
         if samples_seen % PRINT_INFO_EVERY == 0:
             print('[{} - {} #{}] Seen samples: {}, current loss: {}, time spent on batch: {}'.format(
-                args.model, args.frontend, epoch, samples_seen, current, time.time() - start_time))
+                MODEL_NAME, BACKBONE_NAME, epoch, samples_seen, current, time.time() - start_time))
             start_time = time.time()
 
     average_measures_per_epoch['loss'].append(np.mean(current_losses))
@@ -302,7 +302,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                                  measures_dictionary=segmentation_evaluator.get_averaged_measures(current_epoch=epoch))
 
         epoch_time = time.time() - epoch_start_time
-        remain_time = epoch_time * (args.num_epochs - 1 - epoch)
+        remain_time = epoch_time * (NUMBER_OF_EPOCHS - 1 - epoch)
         m, s = divmod(remain_time, 60)
         h, m = divmod(m, 60)
 
