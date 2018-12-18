@@ -26,7 +26,7 @@ AVAILABLE_BACKBONES = {
 
 
 class BackboneBuilder:
-    def __init__(self, backbone_name, is_training=True, weights_directory='models'):
+    def __init__(self, backbone_name, weights_directory, is_training=True):
         if backbone_name not in AVAILABLE_BACKBONES:
             raise ValueError('Backbone {} is not currently available.'.format(backbone_name))
 

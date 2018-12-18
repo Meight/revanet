@@ -36,7 +36,8 @@ class ModelBuilder:
         return AVAILABLE_MODELS[model_name](inputs,
                                             number_of_classes=self.number_of_classes,
                                             backbone_name=self.backbone_name,
-                                            is_training=self.is_training)
+                                            is_training=self.is_training,
+                                            weights_directory=self.weights_directory)
 
     def download_backbone_weights(self, backbone_name, only_if_not_exists=True):
         """
