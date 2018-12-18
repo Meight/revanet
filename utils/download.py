@@ -1,6 +1,6 @@
 import subprocess
 
-from utils.models import AVAILABLE_BACKBONES
+from utils.backbones import AVAILABLE_BACKBONES
 
 
 def download_model_weights(model_name, weights_directory='models'):
