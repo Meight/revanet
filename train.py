@@ -207,11 +207,11 @@ if not IS_MULTI_LABEL_CLASSIFICATION:
 else:
     paths = gather_multi_label_data(dataset_directory=DATASET_DIRECTORY)
 
-    train_input_names = paths['train'].keys()
-    validation_input_names = paths['val'].keys()
-    test_input_names = paths['test'].keys()
-    train_output_names = paths['train'].values()
-    validation_output_names = paths['val'].values()
+    train_input_names = list(paths['train'].keys())
+    validation_input_names = list(paths['val'].keys())
+    test_input_names = list(paths['test'].keys())
+    train_output_names = list(paths['train'].values())
+    validation_output_names = list(paths['val'].values())
 
 average_measures_per_epoch = {
     'loss': [],
