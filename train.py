@@ -258,7 +258,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 output_image = utils.load_image(output_image_name)
             else:
                 n_encoded_masks = get_available_annotation_resized_tensors_for_image((INPUT_SIZE, INPUT_SIZE),
-                                                                                     paths['train'][input_image_index],
+                                                                                     train_output_names[
+                                                                                         input_image_index],
                                                                                      class_colors_dictionary)
                 output_image = random.choice(n_encoded_masks)
 
@@ -329,7 +330,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 file_name = utils.file_path_to_name(validation_input_names[image_index])
             else:
                 n_encoded_masks = get_available_annotation_resized_tensors_for_image(INPUT_SIZE, INPUT_SIZE,
-                                                                                     paths['val'][image_index],
+                                                                                     validation_output_names[
+                                                                                         image_index],
                                                                                      class_colors_dictionary)
 
                 ground_truth = random.choice(n_encoded_masks)  # (INPUT_SIZE, INPUT_SIZE, NUMBER_OF_CLASSES)
