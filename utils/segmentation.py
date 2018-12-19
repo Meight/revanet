@@ -12,6 +12,16 @@ def image_to_one_hot(annotation, class_colors):
     return semantic_map
 
 
+def apply_threshold_to_prediction(prediction, threshold=0.5):
+    assert 0 <= threshold <= 1
+
+    accepted_predictions_indices = np.where(prediction >= threshold)
+    x = np.zeros_like(prediction)
+    x[accepted_predictions_indices] = 1.0
+
+    return x
+
+
 def one_hot_to_image(image):
     x = np.argmax(image, axis=-1)
     return x

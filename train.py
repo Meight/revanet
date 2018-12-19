@@ -23,6 +23,11 @@ parser.add_argument('--is-multi-label-segmentation',
                     action='store_true',
                     default=False,
                     help='Whether or not to interpret the task as multi-label classification.')
+parser.add_argument('--prediction-validation-threshold',
+                    action='store',
+                    default=0.5,
+                    help='Whether or not a threshold should be applied to validate predictions during multi-label'
+                         'classification.')
 parser.add_argument('--learning-rate',
                     type=float,
                     default=0.0001,
@@ -78,6 +83,7 @@ parser.add_argument('--results-directory',
 args = parser.parse_args()
 
 IS_MULTI_LABEL_CLASSIFICATION = bool(args.is_multi_label_segmentation)
+VALIDATION_THRESHOLD = bool(args.prediction_validation_threshold)
 INPUT_SIZE = int(args.input_size)
 
 # No augmentation available for multi-label classification.
@@ -116,10 +122,15 @@ ADDITIONAL_INFO = {
     'backbone': BACKBONE_NAME,
     'validation_every': VALIDATE_EVERY,
     'saving_weights_every': SAVE_WEIGHTS_EVERY,
-    'random_seed': RANDOM_SEED
+    'random_seed': RANDOM_SEED,
+    'is_multi_label_classification': IS_MULTI_LABEL_CLASSIFICATION,
+    'validation_threshold': VALIDATION_THRESHOLD
 }
 
-validation_measures = ['accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou']
+if IS_MULTI_LABEL_CLASSIFICATION:
+    validation_measures = ['exact_match_ratio', 'hamming_score']
+else:
+    validation_measures = ['accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou']
 
 files_formatter_factory = FilesFormatterFactory(mode='training',
                                                 dataset_name=DATASET_NAME,
@@ -289,25 +300,50 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
         for image_index in tqdm(validation_indices):
             input_image = np.float32(utils.load_image(validation_input_names[image_index]))
-            ground_truth = utils.load_image(validation_output_names[image_index])
-            input_image, ground_truth = utils.resize_to_size(input_image, ground_truth, desired_size=INPUT_SIZE)
 
-            input_image = np.expand_dims(input_image, axis=0) / 255.0
-            ground_truth = segmentation.one_hot_to_image(segmentation.image_to_one_hot(ground_truth, class_colors))
+            if not IS_MULTI_LABEL_CLASSIFICATION:
+                ground_truth = utils.load_image(validation_output_names[image_index])
+                ground_truth = segmentation.one_hot_to_image(segmentation.image_to_one_hot(ground_truth, class_colors))
 
-            valid_indices = np.where(np.sum(ground_truth, axis=-1) != 0)
-            ground_truth = ground_truth[valid_indices, :]
+                input_image, ground_truth = utils.resize_to_size(input_image, ground_truth, desired_size=INPUT_SIZE)
 
-            output_image = session.run(predictions_tensor, feed_dict={input_tensor: input_image})
+                input_image = np.expand_dims(input_image, axis=0) / 255.0
 
-            output_image = np.array(output_image[0, :, :, :])
-            output_image = output_image[valid_indices, :]
-            output_image = segmentation.one_hot_to_image(output_image)
+                valid_indices = np.where(np.sum(ground_truth, axis=-1) != 0)
+                ground_truth = ground_truth[valid_indices, :]
 
-            segmentation_evaluator.evaluate(prediction=output_image,
-                                            annotation=ground_truth)
+                output_image = session.run(predictions_tensor, feed_dict={input_tensor: input_image})
 
-            file_name = utils.file_path_to_name(validation_input_names[image_index])
+                output_image = np.array(output_image[0, :, :, :])
+                output_image = output_image[valid_indices, :]
+                output_image = segmentation.one_hot_to_image(output_image)
+
+                segmentation_evaluator.evaluate(prediction=output_image,
+                                                annotation=ground_truth)
+
+                file_name = utils.file_path_to_name(validation_input_names[image_index])
+            else:
+                n_encoded_masks = get_available_annotation_resized_tensors_for_image(INPUT_SIZE, INPUT_SIZE,
+                                                                                     paths['val'][image_index],
+                                                                                     class_colors_dictionary)
+
+                ground_truth = random.choice(n_encoded_masks)  # (INPUT_SIZE, INPUT_SIZE, NUMBER_OF_CLASSES)
+                input_image, _ = utils.resize_to_size(input_image, desired_size=INPUT_SIZE)
+
+                input_image = np.expand_dims(input_image, axis=0) / 255.0
+
+                output_image = session.run(predictions_tensor, feed_dict={input_tensor: input_image})
+
+                output_image = np.array(output_image[0, :, :, :])
+
+                if VALIDATION_THRESHOLD != 0:
+                    output_image = segmentation.apply_threshold_to_prediction(output_image,
+                                                                              threshold=VALIDATION_THRESHOLD)
+                else:
+                    output_image = segmentation.one_hot_to_image(output_image)
+
+                segmentation_evaluator.evaluate(prediction=output_image,
+                                                annotation=ground_truth)
 
         summary_formatter.update(current_epoch=epoch,
                                  measures_dictionary=segmentation_evaluator.get_averaged_measures(current_epoch=epoch))
