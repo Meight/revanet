@@ -51,9 +51,6 @@ class SegmentationEvaluator:
             measure_function = self._get_available_measures_with_functions()[measure_name]
             self.measures_history[measure_name].append(measure_function(prediction, annotation))
 
-        print('Current measures history:')
-        pprint(self.measures_history)
-
     def get_averaged_measures(self, current_epoch):
         """
         Computes the average of every activated measure.
