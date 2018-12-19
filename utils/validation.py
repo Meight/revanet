@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from pprint import pprint
 
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 import numpy as np
 
 
@@ -79,6 +79,8 @@ class SegmentationEvaluator:
             'recall': self.compute_recall,
             'f1': self.compute_f1,
             'iou': self.compute_mean_iou,
+            'exact_match_ratio': self.compute_exact_match_ratio,
+            'hamming_score': self.compute_hamming_score
         }
 
     @staticmethod
@@ -139,3 +141,27 @@ class SegmentationEvaluator:
             union[index] = float(np.sum(np.logical_or(label_i, prediction_i)))
 
         return np.mean(intersection / union)
+
+    @staticmethod
+    def compute_exact_match_ratio(prediction, annotation):
+        return accuracy_score(y_true=annotation, y_pred=prediction, normalize=True)
+
+    @staticmethod
+    def compute_hamming_score(prediction, annotation):
+        """
+        Compute the Hamming score (a.k.a. label-based accuracy) for the multi-label case
+        https://stackoverflow.com/q/32239577/395857
+        """
+        acc_list = []
+        for i in range(annotation.shape[0]):
+            annotation_set = set(np.where(annotation[i])[0])
+            prediction_set = set(np.where(prediction[i])[0])
+
+            if len(annotation_set) == 0 and len(prediction_set) == 0:
+                tmp_a = 1
+            else:
+                tmp_a = len(annotation_set.intersection(prediction_set)) / float(len(annotation_set.union(prediction_set)))
+
+            acc_list.append(tmp_a)
+
+        return np.mean(acc_list)
