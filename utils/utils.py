@@ -31,7 +31,7 @@ def gather_multi_label_data(dataset_directory):
     """
     paths = {}
 
-    for subset_name in ['train', 'validation', 'test']:
+    for subset_name in ['train', 'val', 'test']:
         paths[subset_name] = {}
         subset_annotations_path = subset_name + '_labels'
         cwd = os.getcwd()
