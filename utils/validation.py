@@ -45,8 +45,6 @@ class SegmentationEvaluator:
         prediction = prediction.flatten()
         annotation = annotation.flatten()
 
-        print('Evaluating...', np.shape(prediction), np.shape(annotation))
-
         for measure_name in self.active_measures:
             measure_function = self._get_available_measures_with_functions()[measure_name]
             self.measures_history[measure_name].append(measure_function(prediction, annotation))

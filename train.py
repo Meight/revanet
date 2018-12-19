@@ -7,6 +7,7 @@ import time
 
 import numpy as np
 import tensorflow as tf
+from tqdm import tqdm
 
 from utils import utils, segmentation
 from utils.augmentation import augment_data
@@ -101,7 +102,6 @@ RANDOM_SEED = 2018
 PRINT_INFO_EVERY = 30  # Period (in epochs) of prints.
 
 TRAINING_PARAMETERS = {
-    'model': MODEL_NAME,
     'epochs': NUMBER_OF_EPOCHS,
     'learning_rate': LEARNING_RATE,
     'batch_size': BATCH_SIZE,
@@ -274,8 +274,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
         samples_seen += BATCH_SIZE
 
         if samples_seen % PRINT_INFO_EVERY == 0:
-            print('[{} - {} #{}] Seen samples: {}, current loss: {}, time spent on batch: {}'.format(
-                MODEL_NAME, BACKBONE_NAME, epoch, samples_seen, current, time.time() - start_time))
+            print('[{} - {} #{}/{}] Seen samples: {}, current loss: {}, time spent on batch: {:0.2f}'.format(
+                MODEL_NAME, BACKBONE_NAME, epoch, NUMBER_OF_EPOCHS, samples_seen, current, time.time() - start_time))
             start_time = time.time()
 
     average_measures_per_epoch['loss'].append(np.mean(current_losses))
@@ -287,7 +287,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     if epoch % VALIDATE_EVERY == 0:
         segmentation_evaluator.initialize_history()
 
-        for image_index in validation_indices:
+        for image_index in tqdm(validation_indices):
             input_image = np.float32(utils.load_image(validation_input_names[image_index]))
             ground_truth = utils.load_image(validation_output_names[image_index])
             input_image, ground_truth = utils.resize_to_size(input_image, ground_truth, desired_size=INPUT_SIZE)
