@@ -158,7 +158,7 @@ opt = tf.train.RMSPropOptimizer(learning_rate=LEARNING_RATE,
 
 session.run(tf.global_variables_initializer())
 
-utils.count_parameters()
+print('Parameters:', utils.count_parameters())
 
 if init_fn is not None:
     init_fn(session)
