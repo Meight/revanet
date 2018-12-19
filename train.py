@@ -26,6 +26,7 @@ parser.add_argument('--is-multi-label-segmentation',
 parser.add_argument('--prediction-validation-threshold',
                     action='store',
                     default=0.5,
+                    type=float,
                     help='Whether or not a threshold should be applied to validate predictions during multi-label'
                          'classification.')
 parser.add_argument('--learning-rate',
@@ -83,7 +84,7 @@ parser.add_argument('--results-directory',
 args = parser.parse_args()
 
 IS_MULTI_LABEL_CLASSIFICATION = bool(args.is_multi_label_segmentation)
-VALIDATION_THRESHOLD = bool(args.prediction_validation_threshold)
+VALIDATION_THRESHOLD = float(args.prediction_validation_threshold)
 INPUT_SIZE = int(args.input_size)
 
 # No augmentation available for multi-label classification.
