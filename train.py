@@ -159,7 +159,7 @@ model_builder = ModelBuilder(number_of_classes=number_of_classes,
                              is_training=True)
 predictions_tensor, init_fn = model_builder.build(model_name=MODEL_NAME, inputs=input_tensor)
 
-if IS_MULTI_LABEL_CLASSIFICATION:
+if not IS_MULTI_LABEL_CLASSIFICATION:
     weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
 else:
     weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE, number_of_classes)
