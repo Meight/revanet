@@ -110,6 +110,15 @@ TRAINING_PARAMETERS = {
     'augmented': is_dataset_augmented
 }
 
+ADDITIONAL_INFO = {
+    'results_directory': RESULTS_DIRECTORY,
+    'model': MODEL_NAME,
+    'backbone': BACKBONE_NAME,
+    'validation_every': VALIDATE_EVERY,
+    'saving_weights_every': SAVE_WEIGHTS_EVERY,
+    'random_seed': RANDOM_SEED
+}
+
 validation_measures = ['accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou']
 
 files_formatter_factory = FilesFormatterFactory(mode='training',
@@ -168,7 +177,7 @@ checkpoint_formatter = files_formatter_factory.get_checkpoint_formatter(saver=tf
 summary_formatter = files_formatter_factory.get_summary_formatter()
 logs_formatter = files_formatter_factory.get_logs_formatter()
 
-logs_formatter.write()
+logs_formatter.write(additional_info=ADDITIONAL_INFO)
 
 if CONTINUE_TRAINING:
     print('Loaded latest model checkpoint.')

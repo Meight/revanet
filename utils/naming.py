@@ -172,10 +172,11 @@ class LogsFormatter(FilesFormatterFactory):
 
         colorama_init()
 
-    def write(self):
-        header_width = max([len(header) for header in self.training_parameters.keys()])
+    def write(self, additional_info=None):
+        all_info = {**additional_info, **self.training_parameters}
+        header_width = max([len(header) for header in all_info.keys()])
 
-        for header, value in self.training_parameters.items():
+        for header, value in all_info.items():
             print(self._pretty_print_line(header, value, width=header_width + 2))
 
         if self.verbose:
