@@ -159,7 +159,11 @@ model_builder = ModelBuilder(number_of_classes=number_of_classes,
                              is_training=True)
 predictions_tensor, init_fn = model_builder.build(model_name=MODEL_NAME, inputs=input_tensor)
 
-weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
+if IS_MULTI_LABEL_CLASSIFICATION:
+    weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
+else:
+    weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE, number_of_classes)
+
 unc = tf.where(tf.equal(tf.reduce_sum(output_tensor, axis=-1), 0),
                tf.zeros(shape=weights_shape),
                tf.ones(shape=weights_shape))
@@ -168,8 +172,8 @@ adapted_loss = tf.nn.sigmoid_cross_entropy_with_logits \
     if IS_MULTI_LABEL_CLASSIFICATION else tf.nn.softmax_cross_entropy_with_logits_v2
 
 loss = tf.reduce_mean(tf.losses.compute_weighted_loss(weights=tf.cast(unc, tf.float32),
-                                                      losses=tf.reduce_mean(adapted_loss(logits=predictions_tensor,
-                                                                                         labels=output_tensor))))
+                                                      losses=adapted_loss(logits=predictions_tensor,
+                                                                          labels=output_tensor)))
 
 opt = tf.train.RMSPropOptimizer(learning_rate=LEARNING_RATE,
                                 decay=0.995,
