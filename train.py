@@ -210,6 +210,8 @@ else:
     train_input_names = paths['train'].keys()
     validation_input_names = paths['val'].keys()
     test_input_names = paths['test'].keys()
+    train_output_names = paths['train'].values()
+    validation_output_names = paths['val'].values()
 
 average_measures_per_epoch = {
     'loss': [],
