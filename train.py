@@ -14,6 +14,7 @@ from utils.augmentation import augment_data
 from utils.models import ModelBuilder
 from utils.files import retrieve_dataset_information
 from utils.naming import FilesFormatterFactory
+from utils.segmentation import one_hot_to_image
 from utils.utils import build_images_association_dictionary, gather_multi_label_data, \
     get_available_annotation_resized_tensors_for_image
 from utils.validation import SegmentationEvaluator
@@ -162,8 +163,8 @@ predictions_tensor, init_fn = model_builder.build(model_name=MODEL_NAME, inputs=
 
 total_summary = tf.summary.image('images',
                                  tf.concat(axis=2, values=[tf.cast(input_tensor, tf.uint8),
-                                                           tf.cast(output_tensor, tf.uint8),
-                                                           tf.cast(predictions_tensor, tf.uint8)]),
+                                                           tf.py_func(one_hot_to_image, [output_tensor], tf.uint8),
+                                                           tf.py_func(one_hot_to_image, [predictions_tensor], tf.uint8)]),
                                  max_outputs=20)  # Concatenate row-wise.
 summary_writer = tf.summary.FileWriter(RESULTS_DIRECTORY,
                                        graph=tf.get_default_graph())
