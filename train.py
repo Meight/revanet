@@ -163,8 +163,12 @@ predictions_tensor, init_fn = model_builder.build(model_name=MODEL_NAME, inputs=
 
 total_summary = tf.summary.image('images',
                                  tf.concat(axis=2, values=[tf.cast(input_tensor, tf.uint8),
-                                                           tf.py_func(one_hot_to_image, [output_tensor], tf.uint8),
-                                                           tf.py_func(one_hot_to_image, [predictions_tensor], tf.uint8)]),
+                                                           tf.py_func(tf.cast(one_hot_to_image, tf.uint8),
+                                                                      [output_tensor],
+                                                                      tf.uint8),
+                                                           tf.py_func(tf.cast(one_hot_to_image, tf.uint8),
+                                                                      [predictions_tensor],
+                                                                      tf.uint8)]),
                                  max_outputs=20)  # Concatenate row-wise.
 summary_writer = tf.summary.FileWriter(RESULTS_DIRECTORY,
                                        graph=tf.get_default_graph())
