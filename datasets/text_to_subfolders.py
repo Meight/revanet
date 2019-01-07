@@ -82,10 +82,10 @@ class Processor:
 
     def process_text_file(self, text_file, used_cpus=3):
         print('Found text file for subset {}.'.format(text_file.stem))
-        Path(self.target_path, text_file.stem).mkdir(parents=True, exist_ok=True)
+        Path(self.target_path, text_file.stem).mkdir(parents=True)
 
         annotations_save_path = Path(self.target_path, text_file.stem + '_labels')
-        annotations_save_path.mkdir(parents=True, exist_ok=True)
+        annotations_save_path.mkdir(parents=True)
 
         with open(Path(self.source_path, text_file), 'r') as file:
             Parallel(n_jobs=multiprocessing.cpu_count() - used_cpus)(delayed(self._process_line)(text_file,
@@ -98,7 +98,7 @@ def process_dataset(text_files_directory, dataset_name, target_dataset_root):
     subsets = ['train', 'val', 'test']
     source_path = Path(text_files_directory)
     target_path = Path(target_dataset_root, dataset_name)
-    target_path.mkdir(exist_ok=True, parents=True)
+    target_path.mkdir(parents=True)
 
     class_names, class_colors = retrieve_dataset_information(dataset_path=target_path)
     class_colors_dictionary = dict(zip(class_names, class_colors))
