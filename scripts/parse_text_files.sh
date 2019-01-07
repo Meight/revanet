@@ -21,13 +21,11 @@ TARGET_DATASET_ROOT="/projets/thesepizenberg/deep-learning/revanet/datasets"
 
 # Create a virtual environment from the Docker container.
 
-srun keras-py3-tf virtualenv --system-site-packages /users/thesepizenberg/mlebouch/venv
+srun /projets/thesepizenberg/deep-learning/deeplab-generic/matlab/venv/bin/python3.4 install joblib
 wait
 
-srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/pip3 install joblib
-wait
-
-srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$SCRIPT_PATH/text_to_subfolders.py" \
+srun /projets/thesepizenberg/deep-learning/deeplab-generic/matlab/venv/bin/python3.4 \
+               "$SCRIPT_PATH/text_to_subfolders.py" \
                --text-files-directory=${TEXT_FILES_DIRECTORY} \
                --dataset-name=${DATASET_NAME} \
                --target-dataset-root=${TARGET_DATASET_ROOT}
