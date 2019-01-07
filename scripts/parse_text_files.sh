@@ -21,7 +21,7 @@ TARGET_DATASET_ROOT="/projets/thesepizenberg/deep-learning/revanet/datasets"
 
 # Create a virtual environment from the Docker container.
 
-srun /projets/thesepizenberg/deep-learning/deeplab-generic/matlab/venv/bin/python3.4 install joblib
+srun /projets/thesepizenberg/deep-learning/deeplab-generic/matlab/venv/bin/pip3 install joblib
 wait
 
 srun /projets/thesepizenberg/deep-learning/deeplab-generic/matlab/venv/bin/python3.4 \
