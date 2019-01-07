@@ -97,7 +97,7 @@ def process_dataset(text_files_directory, dataset_name, target_dataset_root):
     target_path = Path(target_dataset_root, dataset_name)
     target_path.mkdir(parents=True, exist_ok=True)
 
-    class_names, class_colors = retrieve_dataset_information(dataset_path=str(target_path))
+    class_names, class_colors = retrieve_dataset_information(dataset_path=target_path)
     class_colors_dictionary = dict(zip(class_names, class_colors))
 
     if not source_path.exists():
