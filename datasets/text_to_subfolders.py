@@ -66,7 +66,7 @@ class Processor:
             annotation_path = Path(self.source_path, annotation_name)
         else:
             annotation_path = None
-            print(f'No annotation found for image {image_name}.')
+            print('No annotation found for image {}.'.format(image_name))
 
         if image_path.exists():
             copy2(image_path, Path(self.target_path, text_file.stem, image_path.stem + '.jpg'))
@@ -75,7 +75,7 @@ class Processor:
                 processed_annotation = self._process_annotation(annotation_path)
                 processed_annotation.save(Path(annotations_save_path, annotation_path.stem + '.png'))
             else:
-                print(f'Image {image_name} not found.')
+                print('Image {} not found.'.format(image_name))
 
     def process_text_file(self, text_file, used_cpus=3):
         print('Found text file for subset {}.'.format(text_file.stem))
