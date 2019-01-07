@@ -24,6 +24,9 @@ TARGET_DATASET_ROOT="/projets/thesepizenberg/deep-learning/revanet/datasets"
 srun keras-py3-tf virtualenv --system-site-packages /users/thesepizenberg/mlebouch/venv
 wait
 
+srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/pip3 install joblib
+wait
+
 srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$SCRIPT_PATH/text_to_subfolders.py" \
                --text-files-directory=${TEXT_FILES_DIRECTORY} \
                --dataset-name=${DATASET_NAME} \
