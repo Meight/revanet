@@ -10,6 +10,9 @@ from PIL import Image
 import numpy as np
 from joblib import Parallel, delayed
 
+import sys
+sys.path.append("/projets/thesepizenberg/deep-learning/revanet/")
+
 from utils.files import retrieve_dataset_information
 
 
