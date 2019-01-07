@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=training-full-val
+#SBATCH --job-name=parse-text-files
 #SBATCH --output=/projets/thesepizenberg/deep-learning/logs/parse-text-files.out
 #SBATCH --error=/projets/thesepizenberg/deep-learning/logs/parse-text-files.out
 
