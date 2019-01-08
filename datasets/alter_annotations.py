@@ -141,7 +141,9 @@ def main(dataset_root_path, annotation_images_path, actual_target_path, transfor
     #    pprint(global_class_similarities, stream=out)
 
     print('Average similarity for transformed set: {:4.2f} %'.format(average_similarity * 100))
-    new_directory_name = actual_target_path.with_name('{}_{:04.2f}'.format(transformation, average_similarity * 100))
+    new_directory_name = actual_target_path.with_name('{}_{:04.2f}_{:04.2f}'.format(transformation,
+                                                                                    target_average_miou * 100,
+                                                                                    average_similarity * 100))
     print('Renaming {} in {}'.format(actual_target_path, new_directory_name))
     shutil.move(str(actual_target_path), str(new_directory_name))
 
