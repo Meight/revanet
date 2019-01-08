@@ -4,7 +4,7 @@
 #SBATCH --error=/projets/thesepizenberg/deep-learning/logs/alter-%j.out
 
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=5
 #SBATCH --partition=24CPUNodes
 #SBATCH --mem-per-cpu=7500M
 
