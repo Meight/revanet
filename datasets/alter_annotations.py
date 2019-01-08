@@ -75,6 +75,9 @@ def process_annotation(annotation_path, class_names, class_colors_dictionary, in
 
             # Generate the colored mask based on Pascal's palette.
             colored_mask = np.zeros_like(transformed_data)
+            class_indices = np.where((transformed_data[:, :, 0] == red)
+                                     & (transformed_data[:, :, 1] == green)
+                                     & (transformed_data[:, :, 2] == blue))
             colored_mask[class_indices] = 1
 
             # Colorize the binary mask with the class color.
@@ -82,7 +85,7 @@ def process_annotation(annotation_path, class_names, class_colors_dictionary, in
             colored_mask[:, :, 1] *= green
             colored_mask[:, :, 2] *= blue
 
-            if merge_classes and result is not None:
+            if merge_classes:
                 result[class_indices] = colored_mask[class_indices]
             else:
                 image = Image.fromarray(colored_mask)
