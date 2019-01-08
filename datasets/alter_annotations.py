@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
     init()
 
-    print("Using " + Fore.BLUE + multiprocessing.cpu_count() + Style.RESET_ALL + " CPUs.")
+    print("Using " + Fore.BLUE + str(multiprocessing.cpu_count()) + Style.RESET_ALL + " CPUs.")
 
     main(DATASET_ROOT_PATH, ANNOTATION_IMAGES_PATH, TARGET_PATH, TRANSFORMATION,
          INITIAL_SIZE, TARGET_AVERAGE_MIOU, PRECISION_TOLERANCE, MERGE_CLASSES)
