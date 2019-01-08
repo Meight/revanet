@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 WORKING_DIR="/projets/thesepizenberg/deep-learning/revanet/scripts"
-TRANSFORMATIONS=("erosion", "dilation")
+TRANSFORMATIONS=("erosion" "dilation")
 PRECISION_TOLERANCE=0.09
 
 for transformation in "${TRANSFORMATIONS[@]}"; do
