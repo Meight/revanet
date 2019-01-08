@@ -16,15 +16,15 @@ PYTHON_PATH="/users/thesepizenberg/mlebouch/venv/bin"
 SCRIPT_PATH="/projets/thesepizenberg/deep-learning/revanet/datasets"
 TEXT_FILES_DIRECTORY="/projets/thesepizenberg/deep-learning/datasets/VOC2012-fresh"
 DATASET_NAME="augmented-pascal"
-TARGET_DATASET_ROOT="/projets/thesepizenberg/deep-learning/revanet/datasets"
-DATASET_ROOT_PATH="/projets/thesepizenberg/deep-learning/revanet/datasets"
+TARGET_DATASET_ROOT="/projets/thesepizenberg/deep-learning/revanet/datasets/test"
+DATASET_ROOT_PATH="/projets/thesepizenberg/deep-learning/revanet/datasets/test"
 ANNOTATIONS_PATH="${DATASET_ROOT_PATH}/train_labels"
 TARGET_PATH=$DATASET_ROOT_PATH
 
 # Begin script.
 srun ${PYTHON_PATH}/python \
                "$SCRIPT_PATH/alter_annotations.py" \
-               --annotations-paths=${ANNOTATIONS_PATH} \
+               --annotations-path=${ANNOTATIONS_PATH} \
                --dataset-root-path=${DATASET_ROOT_PATH} \
                --target-path=${TARGET_PATH} \
                --transformation=${1} \
