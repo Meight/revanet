@@ -161,17 +161,17 @@ model_builder = ModelBuilder(number_of_classes=number_of_classes,
                              is_training=True)
 predictions_tensor, init_fn = model_builder.build(model_name=MODEL_NAME, inputs=input_tensor)
 
-total_summary = tf.summary.image('images',
-                                 tf.concat(axis=2, values=[tf.cast(input_tensor, tf.uint8),
-                                                           tf.py_func(tf.cast(one_hot_to_image, tf.uint8),
-                                                                      [output_tensor],
-                                                                      tf.uint8),
-                                                           tf.py_func(tf.cast(one_hot_to_image, tf.uint8),
-                                                                      [predictions_tensor],
-                                                                      tf.uint8)]),
-                                 max_outputs=20)  # Concatenate row-wise.
-summary_writer = tf.summary.FileWriter(RESULTS_DIRECTORY,
-                                       graph=tf.get_default_graph())
+# total_summary = tf.summary.image('images',
+#                                  tf.concat(axis=2, values=[tf.cast(input_tensor, tf.uint8),
+#                                                            tf.py_func(tf.cast(one_hot_to_image, tf.uint8),
+#                                                                       [output_tensor],
+#                                                                       tf.uint8),
+#                                                            tf.py_func(tf.cast(one_hot_to_image, tf.uint8),
+#                                                                       [predictions_tensor],
+#                                                                       tf.uint8)]),
+#                                  max_outputs=20)  # Concatenate row-wise.
+# summary_writer = tf.summary.FileWriter(RESULTS_DIRECTORY,
+#                                        graph=tf.get_default_graph())
 
 if not IS_MULTI_LABEL_CLASSIFICATION:
     weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
@@ -298,9 +298,9 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
             output_image_batch = np.squeeze(np.stack(output_image_batch, axis=1))
 
         # Perform training.
-        _, current, summary = session.run([opt, loss, total_summary],
-                                          feed_dict={input_tensor: input_image_batch, output_tensor: output_image_batch})
-        summary_writer.add_summary(summary, epoch)
+        _, current = session.run([opt, loss],
+                                 feed_dict={input_tensor: input_image_batch, output_tensor: output_image_batch})
+        # summary_writer.add_summary(summary, epoch)
         current_losses.append(current)
         samples_seen += BATCH_SIZE
 
