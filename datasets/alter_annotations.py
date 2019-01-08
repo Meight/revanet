@@ -120,21 +120,21 @@ def main(dataset_root_path, annotation_images_path, actual_target_path, transfor
         if not merge_classes:
             class_directory.mkdir(parents=True, exist_ok=True)
 
-        print(class_name, r, g, b, sep=',')
+        # print(class_name, r, g, b, sep=',')
 
     # Transform every annotation image.
-    images_similarities = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(process_annotation)
-                                                                       (annotation_path,
-                                                                        class_names,
-                                                                        class_colors_dictionary,
-                                                                        initial_size,
-                                                                        target_average_miou,
-                                                                        precision_tolerance,
-                                                                        transformation,
-                                                                        actual_target_path,
-                                                                        merge_classes)
-                                                                       for annotation_path
-                                                                       in Path(annotation_images_path).glob('*.png'))
+    images_similarities = Parallel(n_jobs=5)(delayed(process_annotation)
+                                             (annotation_path,
+                                              class_names,
+                                              class_colors_dictionary,
+                                              initial_size,
+                                              target_average_miou,
+                                              precision_tolerance,
+                                              transformation,
+                                              actual_target_path,
+                                              merge_classes)
+                                             for annotation_path
+                                             in Path(annotation_images_path).glob('*.png'))
     average_similarity = sum(images_similarities) / len(images_similarities)
 
     # with open(Path(actual_target_path, 'stats.txt'), 'wt') as out:
@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
     init()
 
-    print("Using " + Fore.BLUE + str(multiprocessing.cpu_count()) + Style.RESET_ALL + " CPUs.")
+    print("Using " + Fore.BLUE + str(5) + Style.RESET_ALL + " CPUs.")
 
     main(DATASET_ROOT_PATH, ANNOTATION_IMAGES_PATH, TARGET_PATH, TRANSFORMATION,
          INITIAL_SIZE, TARGET_AVERAGE_MIOU, PRECISION_TOLERANCE, MERGE_CLASSES)
