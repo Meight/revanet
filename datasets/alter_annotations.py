@@ -108,8 +108,9 @@ def main(dataset_root_path, annotation_images_path, actual_target_path, transfor
     class_names, class_colors = retrieve_dataset_information(dataset_path=dataset_root_path)
     class_colors_dictionary = dict(zip(class_names, class_colors))
 
-    actual_target_path = Path(actual_target_path, 'miou_{:04.2f}_pm_{:04.2f}'.format(target_average_miou * 100,
-                                                                                     precision_tolerance * 100))
+    actual_target_path = Path(actual_target_path, '{}_miou_{:04.2f}_pm_{:04.2f}'.format(transformation,
+                                                                                        target_average_miou * 100,
+                                                                                        precision_tolerance * 100))
     actual_target_path.mkdir(exist_ok=True)
     # Print the color palette retrieved from the dictionary at the root of the dataset directory.
     for class_name in class_names:
@@ -140,7 +141,7 @@ def main(dataset_root_path, annotation_images_path, actual_target_path, transfor
     #    pprint(global_class_similarities, stream=out)
 
     print('Average similarity for transformed set: {:4.2f} %'.format(average_similarity * 100))
-    new_directory_name = actual_target_path.with_name('miou_{:04.2f}'.format(average_similarity * 100))
+    new_directory_name = actual_target_path.with_name('{}_{:04.2f}'.format(transformation, average_similarity * 100))
     print('Renaming {} in {}'.format(actual_target_path, new_directory_name))
     shutil.move(str(actual_target_path), str(new_directory_name))
 
