@@ -27,7 +27,7 @@ srun ${PYTHON_PATH}/python \
                --annotations-paths=${ANNOTATIONS_PATH} \
                --dataset-root-path=${DATASET_ROOT_PATH} \
                --target-path=${TARGET_PATH} \
-               --transformation=${0} \
-               --target-average-miou=${1} \
-               --precision-tolerance=${2}
+               --transformation=${1} \
+               --target-average-miou=${2} \
+               --precision-tolerance=${3}
 wait
