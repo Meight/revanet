@@ -161,7 +161,7 @@ if __name__ == "__main__":
     parser.add_argument('--transformation', action='store',
                         help='The kind of transformation to apply to the class binary masks.')
     parser.add_argument('--initial-size', action='store',
-                        default=3,
+                        default=0,
                         help='The initial size of the kernel to use during transformations.')
     parser.add_argument('--target-average-miou', action='store', type=float,
                         help='''The average mIOU that the resulting modified dataset should have.
