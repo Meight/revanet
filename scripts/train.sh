@@ -12,26 +12,24 @@
 set -e
 
 # Various script and dataset paths.
+VENV_PATH="/users/thesepizenberg/mlebouch/venv-tf"
 TRAIN_SCRIPT_DIR="/projets/thesepizenberg/deep-learning/revanet"
 
 # Begin script.
 
 # Create a virtual environment from the Docker container.
 
-srun keras-py3-tf virtualenv --system-site-packages /users/thesepizenberg/mlebouch/venv
+srun keras-py3-tf virtualenv --system-site-packages ${VENV_PATH}
 wait
 
-srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/pip3 install colorama
-wait
-
-srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$TRAIN_SCRIPT_DIR/train.py" \
+srun keras-py3-tf ${VENV_PATH}/bin/python "$TRAIN_SCRIPT_DIR/train.py" \
                 --number-of-epochs=75 \
-                --save-weights-every=20 \
+                --save-weights-every=24 \
                 --validate-every=1 \
                 --number-of-validation-images=1449 \
                 --model-name=BiSeNet \
                 --backbone-name=ResNet101 \
-                --input-size=256 \
+                --input-size=384 \
                 --batch-size=1 \
-                --dataset-name=voc-ha
+                --dataset-name=augmented-pascal
 wait

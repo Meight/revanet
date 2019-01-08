@@ -44,7 +44,7 @@ slim = tf.contrib.slim
 
 
 class Block(collections.namedtuple('Block', ['scope', 'unit_fn', 'args'])):
-  """A named tuple describing a ResNet block.
+    """A named tuple describing a ResNet block.
 
   Its parts are:
     scope: The scope of the `Block`.
@@ -57,7 +57,7 @@ class Block(collections.namedtuple('Block', ['scope', 'unit_fn', 'args'])):
 
 
 def subsample(inputs, factor, scope=None):
-  """Subsamples the input along the spatial dimensions.
+    """Subsamples the input along the spatial dimensions.
 
   Args:
     inputs: A `Tensor` of size [batch, height_in, width_in, channels].
@@ -68,14 +68,14 @@ def subsample(inputs, factor, scope=None):
     output: A `Tensor` of size [batch, height_out, width_out, channels] with the
       input, either intact (if factor == 1) or subsampled (if factor > 1).
   """
-  if factor == 1:
-    return inputs
-  else:
-    return slim.max_pool2d(inputs, [1, 1], stride=factor, scope=scope)
+    if factor == 1:
+        return inputs
+    else:
+        return slim.max_pool2d(inputs, [1, 1], stride=factor, scope=scope)
 
 
 def conv2d_same(inputs, num_outputs, kernel_size, stride, rate=1, scope=None):
-  """Strided 2-D convolution with 'SAME' padding.
+    """Strided 2-D convolution with 'SAME' padding.
 
   When stride > 1, then we do explicit zero-padding, followed by conv2d with
   'VALID' padding.
@@ -108,24 +108,24 @@ def conv2d_same(inputs, num_outputs, kernel_size, stride, rate=1, scope=None):
     output: A 4-D tensor of size [batch, height_out, width_out, channels] with
       the convolution output.
   """
-  if stride == 1:
-    return slim.conv2d(inputs, num_outputs, kernel_size, stride=1, rate=rate,
-                       padding='SAME', scope=scope)
-  else:
-    kernel_size_effective = kernel_size + (kernel_size - 1) * (rate - 1)
-    pad_total = kernel_size_effective - 1
-    pad_beg = pad_total // 2
-    pad_end = pad_total - pad_beg
-    inputs = tf.pad(inputs,
-                    [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
-    return slim.conv2d(inputs, num_outputs, kernel_size, stride=stride,
-                       rate=rate, padding='VALID', scope=scope)
+    if stride == 1:
+        return slim.conv2d(inputs, num_outputs, kernel_size, stride=1, rate=rate,
+                           padding='SAME', scope=scope)
+    else:
+        kernel_size_effective = kernel_size + (kernel_size - 1) * (rate - 1)
+        pad_total = kernel_size_effective - 1
+        pad_beg = pad_total // 2
+        pad_end = pad_total - pad_beg
+        inputs = tf.pad(inputs,
+                        [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
+        return slim.conv2d(inputs, num_outputs, kernel_size, stride=stride,
+                           rate=rate, padding='VALID', scope=scope)
 
 
 @slim.add_arg_scope
 def stack_blocks_dense(net, blocks, multi_grid, output_stride=None,
                        outputs_collections=None):
-  """Stacks ResNet `Blocks` and controls output feature density.
+    """Stacks ResNet `Blocks` and controls output feature density.
 
   First, this function creates scopes for the ResNet in the form of
   'block_name/unit_1', 'block_name/unit_2', etc.
@@ -162,41 +162,41 @@ def stack_blocks_dense(net, blocks, multi_grid, output_stride=None,
   Raises:
     ValueError: If the target output_stride is not valid.
   """
-  # The current_stride variable keeps track of the effective stride of the
-  # activations. This allows us to invoke atrous convolution whenever applying
-  # the next residual unit would result in the activations having stride larger
-  # than the target output_stride.
-  current_stride = 1
+    # The current_stride variable keeps track of the effective stride of the
+    # activations. This allows us to invoke atrous convolution whenever applying
+    # the next residual unit would result in the activations having stride larger
+    # than the target output_stride.
+    current_stride = 1
 
-  # The atrous convolution rate parameter.
-  rate = 1
+    # The atrous convolution rate parameter.
+    rate = 1
 
-  for block in blocks:
-    with tf.variable_scope(block.scope, 'block', [net]) as sc:
-      for i, unit in enumerate(block.args):
-        if output_stride is not None and current_stride > output_stride:
-          raise ValueError('The target output_stride cannot be reached.')
+    for block in blocks:
+        with tf.variable_scope(block.scope, 'block', [net]) as sc:
+            for i, unit in enumerate(block.args):
+                if output_stride is not None and current_stride > output_stride:
+                    raise ValueError('The target output_stride cannot be reached.')
 
-        with tf.variable_scope('unit_%d' % (i + 1), values=[net]):
-          # If we have reached the target output_stride, then we need to employ
-          # atrous convolution with stride=1 and multiply the atrous rate by the
-          # current unit's stride for use in subsequent layers.
-          if output_stride is not None and current_stride == output_stride:
-            # Only uses atrous convolutions with multi-graid rates in the last (block4) block
-            if block.scope == "block4":
-              net = block.unit_fn(net, rate=rate * multi_grid[i], **dict(unit, stride=1))
-            else:
-              net = block.unit_fn(net, rate=rate, **dict(unit, stride=1))
-            rate *= unit.get('stride', 1)
-          else:
-            net = block.unit_fn(net, rate=1, **unit)
-            current_stride *= unit.get('stride', 1)
-      net = slim.utils.collect_named_outputs(outputs_collections, sc.name, net)
+                with tf.variable_scope('unit_%d' % (i + 1), values=[net]):
+                    # If we have reached the target output_stride, then we need to employ
+                    # atrous convolution with stride=1 and multiply the atrous rate by the
+                    # current unit's stride for use in subsequent layers.
+                    if output_stride is not None and current_stride == output_stride:
+                        # Only uses atrous convolutions with multi-graid rates in the last (block4) block
+                        if block.scope == "block4":
+                            net = block.unit_fn(net, rate=rate * multi_grid[i], **dict(unit, stride=1))
+                        else:
+                            net = block.unit_fn(net, rate=rate, **dict(unit, stride=1))
+                        rate *= unit.get('stride', 1)
+                    else:
+                        net = block.unit_fn(net, rate=1, **unit)
+                        current_stride *= unit.get('stride', 1)
+            net = slim.utils.collect_named_outputs(outputs_collections, sc.name, net)
 
-  if output_stride is not None and current_stride != output_stride:
-    raise ValueError('The target output_stride cannot be reached.')
+    if output_stride is not None and current_stride != output_stride:
+        raise ValueError('The target output_stride cannot be reached.')
 
-  return net
+    return net
 
 
 def resnet_arg_scope(weight_decay=0.0001,
@@ -206,7 +206,7 @@ def resnet_arg_scope(weight_decay=0.0001,
                      batch_norm_scale=True,
                      activation_fn=tf.nn.relu,
                      use_batch_norm=True):
-  """Defines the default ResNet arg scope.
+    """Defines the default ResNet arg scope.
 
   TODO(gpapan): The batch-normalization related default values above are
     appropriate for use in conjunction with the reference ResNet models
@@ -227,28 +227,28 @@ def resnet_arg_scope(weight_decay=0.0001,
   Returns:
     An `arg_scope` to use for the resnet models.
   """
-  batch_norm_params = {
-      'decay': batch_norm_decay,
-      'epsilon': batch_norm_epsilon,
-      'scale': batch_norm_scale,
-      'updates_collections': None,
-      'is_training': is_training,
-      'fused': True,  # Use fused batch norm if possible.
-  }
+    batch_norm_params = {
+        'decay': batch_norm_decay,
+        'epsilon': batch_norm_epsilon,
+        'scale': batch_norm_scale,
+        'updates_collections': None,
+        'is_training': is_training,
+        'fused': True,  # Use fused batch norm if possible.
+    }
 
-  with slim.arg_scope(
-      [slim.conv2d],
-      weights_regularizer=slim.l2_regularizer(weight_decay),
-      weights_initializer=slim.variance_scaling_initializer(),
-      activation_fn=activation_fn,
-      normalizer_fn=slim.batch_norm if use_batch_norm else None,
-      normalizer_params=batch_norm_params):
-    with slim.arg_scope([slim.batch_norm], **batch_norm_params):
-      # The following implies padding='SAME' for pool1, which makes feature
-      # alignment easier for dense prediction tasks. This is also used in
-      # https://github.com/facebook/fb.resnet.torch. However the accompanying
-      # code of 'Deep Residual Learning for Image Recognition' uses
-      # padding='VALID' for pool1. You can switch to that choice by setting
-      # slim.arg_scope([slim.max_pool2d], padding='VALID').
-      with slim.arg_scope([slim.max_pool2d], padding='SAME') as arg_sc:
-        return arg_sc
+    with slim.arg_scope(
+            [slim.conv2d],
+            weights_regularizer=slim.l2_regularizer(weight_decay),
+            weights_initializer=slim.variance_scaling_initializer(),
+            activation_fn=activation_fn,
+            normalizer_fn=slim.batch_norm if use_batch_norm else None,
+            normalizer_params=batch_norm_params):
+        with slim.arg_scope([slim.batch_norm], **batch_norm_params):
+            # The following implies padding='SAME' for pool1, which makes feature
+            # alignment easier for dense prediction tasks. This is also used in
+            # https://github.com/facebook/fb.resnet.torch. However the accompanying
+            # code of 'Deep Residual Learning for Image Recognition' uses
+            # padding='VALID' for pool1. You can switch to that choice by setting
+            # slim.arg_scope([slim.max_pool2d], padding='VALID').
+            with slim.arg_scope([slim.max_pool2d], padding='SAME') as arg_sc:
+                return arg_sc

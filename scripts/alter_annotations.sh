@@ -15,9 +15,9 @@ set -e
 PYTHON_PATH="/users/thesepizenberg/mlebouch/venv/bin"
 SCRIPT_PATH="/projets/thesepizenberg/deep-learning/revanet/datasets"
 TEXT_FILES_DIRECTORY="/projets/thesepizenberg/deep-learning/datasets/VOC2012-fresh"
-DATASET_NAME="augmented-pascal"
-TARGET_DATASET_ROOT="/projets/thesepizenberg/deep-learning/revanet/datasets/test"
-DATASET_ROOT_PATH="/projets/thesepizenberg/deep-learning/revanet/datasets/test"
+DATASET_NAME="augmented-pascal-altered"
+TARGET_DATASET_ROOT="/projets/thesepizenberg/deep-learning/revanet/datasets/${DATASET_NAME}"
+DATASET_ROOT_PATH="/projets/thesepizenberg/deep-learning/revanet/datasets/${DATASET_NAME}"
 ANNOTATIONS_PATH="${DATASET_ROOT_PATH}/train_labels"
 TARGET_PATH=$DATASET_ROOT_PATH
 

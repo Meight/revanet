@@ -4,6 +4,7 @@ import argparse
 import os
 import random
 import time
+from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
@@ -14,7 +15,6 @@ from utils.augmentation import augment_data
 from utils.models import ModelBuilder
 from utils.files import retrieve_dataset_information
 from utils.naming import FilesFormatterFactory
-from utils.segmentation import one_hot_to_image
 from utils.utils import build_images_association_dictionary, gather_multi_label_data, \
     get_available_annotation_resized_tensors_for_image
 from utils.validation import SegmentationEvaluator
@@ -92,7 +92,7 @@ INPUT_SIZE = int(args.input_size)
 is_dataset_augmented = False
 
 DATASET_NAME = str(args.dataset_name)
-DATASET_DIRECTORY = os.path.join('datasets', DATASET_NAME)
+DATASET_PATH = Path('datasets', DATASET_NAME)
 RESULTS_DIRECTORY = str(args.results_directory)
 MODEL_NAME = str(args.model_name)
 BACKBONE_NAME = str(args.backbone_name)
@@ -142,7 +142,7 @@ files_formatter_factory = FilesFormatterFactory(mode='training',
                                                 verbose=True,
                                                 results_folder=RESULTS_DIRECTORY)
 
-class_names_list, class_colors = retrieve_dataset_information(dataset_path=DATASET_NAME)
+class_names_list, class_colors = retrieve_dataset_information(dataset_path=DATASET_PATH)
 class_colors_dictionary = dict(zip(class_names_list, class_colors))
 number_of_classes = len(class_colors)
 
@@ -216,9 +216,9 @@ paths = None
 if not IS_MULTI_LABEL_CLASSIFICATION:
     train_input_names, train_output_names, validation_input_names, \
     validation_output_names, test_input_names, test_output_names = utils.prepare_data(dataset_directory=
-                                                                                      DATASET_DIRECTORY)
+                                                                                      DATASET_PATH)
 else:
-    paths = gather_multi_label_data(dataset_directory=DATASET_DIRECTORY)
+    paths = gather_multi_label_data(dataset_directory=DATASET_PATH)
 
     train_input_names = list(paths['train'].keys())
     validation_input_names = list(paths['val'].keys())

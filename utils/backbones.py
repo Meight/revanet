@@ -39,7 +39,7 @@ class BackboneBuilder:
         scope = AVAILABLE_BACKBONES[self.backbone_name]['scope']
         arguments_scope = AVAILABLE_BACKBONES[self.backbone_name]['arguments_scope']
 
-        with slim.arg_scope(arguments_scope):
+        with slim.arg_scope(arguments_scope()):
             logits, end_points = model(inputs,
                                        is_training=self.is_training,
                                        scope=scope)
