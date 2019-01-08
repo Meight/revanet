@@ -10,7 +10,7 @@ for transformation in "${TRANSFORMATIONS[@]}"; do
     upper_bound=98
 
     while (( current_target_miou <= 98 )); do
-        srun ${WORKING_DIR}/alter_annotations.sh ${transformation} ${current_target_miou} ${PRECISION_TOLERANCE}
+        sbatch ${WORKING_DIR}/alter_annotations.sh ${transformation} ${current_target_miou} ${PRECISION_TOLERANCE}
         echo "Launched annotations alterations with transformation '${transformation}' and target mIOU of ${current_target_miou}."
     done
 done
