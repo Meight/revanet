@@ -9,7 +9,7 @@ for transformation in "${TRANSFORMATIONS[@]}"; do
     step=5
 
     while (( current_target_miou <= 95 )); do
-        sbatch ${WORKING_DIR}/alter_annotations.sh ${transformation} ${current_target_miou} ${PRECISION_TOLERANCE}
+        sbatch ${WORKING_DIR}/alter_annotations.sh ${transformation} 0.${current_target_miou} ${PRECISION_TOLERANCE}
         echo "Launched annotations alterations with transformation '${transformation}' and target mIOU of ${current_target_miou}."
         (( current_target_miou += step ))
     done
