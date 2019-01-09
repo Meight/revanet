@@ -68,7 +68,7 @@ def build_bisenet(inputs, number_of_classes, weights_directory, backbone_name="R
 
     net_5 = attention_refinement_module(end_points['pool5'], n_filters=2048)
 
-    global_channels = tf.reduce_mean(net_5, [1, 2], keep_dims=True)
+    global_channels = tf.reduce_mean(net_5, [1, 2], keepdims=True)
     net_5_scaled = tf.multiply(global_channels, net_5)
 
     # Spatial path.
