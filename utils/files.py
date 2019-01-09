@@ -1,9 +1,13 @@
 import csv
-import glob
-import os
 
 
 def retrieve_dataset_information(dataset_path):
+    """
+    Retrieves the information stored in the CSV file at the root of the provided dataset path.
+
+    :param dataset_path: Path to the dataset being used.
+    :return:
+    """
     csv_files = dataset_path.glob('*.csv')
 
     if not csv_files:

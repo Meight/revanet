@@ -29,7 +29,7 @@ srun keras-py3-tf ${VENV_PATH}/bin/python "$TRAIN_SCRIPT_DIR/train.py" \
                 --number-of-validation-images=1449 \
                 --model-name=BiSeNet \
                 --backbone-name=ResNet101 \
-                --input-size=384 \
+                --input-size=256 \
                 --batch-size=1 \
                 --dataset-name=augmented-pascal
 wait
