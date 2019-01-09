@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import argparse
-import os
 import random
 import time
 from pathlib import Path
@@ -12,6 +11,7 @@ from tqdm import tqdm
 
 from utils import utils, segmentation
 from utils.augmentation import augment_data
+from utils.dataset import check_dataset_correctness
 from utils.models import ModelBuilder
 from utils.files import retrieve_dataset_information
 from utils.naming import FilesFormatterFactory
@@ -82,6 +82,22 @@ parser.add_argument('--results-directory',
                     type=str,
                     default='/projets/thesepizenberg/deep-learning/revanet/',
                     help='Path to the directory where the results are to be stored.')
+parser.add_argument('--train-folder',
+                    type=str,
+                    default='train',
+                    help='Name of the folder in which the training samples are to be found.')
+parser.add_argument('--train-annotations-folder',
+                    type=str,
+                    default='train_annotations',
+                    help='Name of the folder containing the annotations corresponding to the training samples.')
+parser.add_argument('--validation-folder',
+                    type=str,
+                    default='validation',
+                    help='Name of the folder in which the validation samples are to be found.')
+parser.add_argument('--validation-annotations-folder',
+                    type=str,
+                    default='validation_annotations',
+                    help='Name of the folder containing the annotations corresponding to the validation samples.')
 args = parser.parse_args()
 
 IS_MULTI_LABEL_CLASSIFICATION = bool(args.is_multi_label_segmentation)
@@ -93,7 +109,20 @@ is_dataset_augmented = False
 
 DATASET_NAME = str(args.dataset_name)
 DATASET_PATH = Path('datasets', DATASET_NAME)
+TRAIN_PATH = Path(DATASET_PATH, str(args.train_folder))
+TRAIN_ANNOTATIONS_PATH = Path(DATASET_PATH, str(args.train_annotations_folder))
+VALIDATION_PATH = Path(DATASET_PATH, str(args.validation_folder))
+VALIDATION_ANNOTATIONS_PATH = Path(DATASET_PATH, str(args.validation_annotations_folder))
 RESULTS_DIRECTORY = str(args.results_directory)
+
+# Ensure that all required folders and files exist and are well defined.
+check_dataset_correctness(dataset_name=DATASET_NAME,
+                          dataset_path=DATASET_PATH,
+                          train_path=TRAIN_PATH,
+                          train_annotations_path=TRAIN_ANNOTATIONS_PATH,
+                          validation_path=VALIDATION_PATH,
+                          validation_annotations_path=VALIDATION_ANNOTATIONS_PATH)
+
 MODEL_NAME = str(args.model_name)
 BACKBONE_NAME = str(args.backbone_name)
 CONTINUE_TRAINING = bool(args.continue_training)
