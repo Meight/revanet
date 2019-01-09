@@ -160,6 +160,7 @@ files_formatter_factory = FilesFormatterFactory(mode='training',
                                                 model_name=MODEL_NAME,
                                                 backbone_name=BACKBONE_NAME,
                                                 training_parameters=TRAINING_PARAMETERS,
+                                                train_path=TRAIN_PATH,
                                                 verbose=True,
                                                 results_folder=RESULTS_DIRECTORY)
 

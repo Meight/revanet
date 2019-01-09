@@ -6,6 +6,8 @@ accumulate quite quickly.
 """
 
 import os
+from pathlib import Path
+
 from colorama import init as colorama_init, Fore, Back, Style
 
 
@@ -13,7 +15,13 @@ class FilesFormatterFactory:
     """
     A factory used to build various file formatters with different strategies.
     """
-    def __init__(self, mode, dataset_name, model_name, backbone_name, training_parameters, results_folder='results',
+    def __init__(self, mode,
+                 dataset_name=None,
+                 model_name=None,
+                 backbone_name=None,
+                 training_parameters=None,
+                 train_path: Path=Path(),
+                 results_folder='results',
                  verbose=False):
         """
 
@@ -32,24 +40,37 @@ class FilesFormatterFactory:
         self.dataset_name = dataset_name
         self.verbose = verbose
 
+        self.train_folder = train_path.name
+
         self.results_folder = os.path.join('datasets', dataset_name, results_folder)
         self._parameters_string = self._generate_parameters_string()
         self._full_detailed_path = self._generate_full_detailed_path()
 
-        if not os.path.exists(self._full_detailed_path):
-            os.makedirs(self._full_detailed_path)
+        if not self._full_detailed_path.exists():
+            self._full_detailed_path.mkdir(parents=True, exist_ok=True)
 
     def _generate_full_detailed_path(self):
-        return os.path.join(self.results_folder,
-                            self.mode,
-                            self.model_name,
-                            self.backbone_name)
+        return Path(self.results_folder,
+                    self.mode,
+                    self.backbone_name + self.model_name)
 
     def _generate_parameters_string(self):
-        return '_'.join(['{}-{}'.format(self._get_initials(parameter_name), parameter_value)
-                         for parameter_name, parameter_value in self.training_parameters.items()])
+        return '_'.join(['{}-{}'.format(self._get_initials(parameter_name), self._format_parameter(parameter_value))
+                         for parameter_name, parameter_value
+                         in self.training_parameters.items()
+                         if parameter_name not in ['train_annotations_path',
+                                                   'validation_images_path',
+                                                   'validation_annotation_path']])
 
-    def _get_initials(self, string):
+    @staticmethod
+    def _format_parameter(parameter):
+        if isinstance(parameter, Path):
+            return parameter.name.upper()
+
+        return parameter
+
+    @staticmethod
+    def _get_initials(string):
         return ''.join([x[0].upper() for x in string.split('_')])
 
     def generate_checkpoint_name(self, current_epoch):
@@ -69,13 +90,13 @@ class FilesFormatterFactory:
         :param saver:   Instance of a `tf.Saver` that's linked to the current session.
         :return:        The generated checkpoint formatter.
         """
-        return CheckpointFormatter(self.mode,
-                                   self.dataset_name,
-                                   self.model_name,
-                                   self.backbone_name,
-                                   self.training_parameters,
-                                   saver,
-                                   self.verbose)
+        return CheckpointFormatter(mode=self.mode,
+                                   dataset_name=self.dataset_name,
+                                   model_name=self.model_name,
+                                   backbone_name=self.backbone_name,
+                                   training_parameters=self.training_parameters,
+                                   verbose=self.verbose,
+                                   saver=saver)
 
     def get_summary_formatter(self):
         """
@@ -83,25 +104,25 @@ class FilesFormatterFactory:
 
         :return: The generated summary formatter.
         """
-        return SummaryFormatter(self.mode,
-                                self.dataset_name,
-                                self.model_name,
-                                self.backbone_name,
-                                self.training_parameters,
-                                self.verbose)
+        return SummaryFormatter(mode=self.mode,
+                                dataset_name=self.dataset_name,
+                                model_name=self.model_name,
+                                backbone_name=self.backbone_name,
+                                training_parameters=self.training_parameters,
+                                verbose=self.verbose)
 
     def get_logs_formatter(self):
-        return LogsFormatter(self.mode,
-                             self.dataset_name,
-                             self.model_name,
-                             self.backbone_name,
-                             self.training_parameters,
-                             self.verbose)
+        return LogsFormatter(mode=self.mode,
+                             dataset_name=self.dataset_name,
+                             model_name=self.model_name,
+                             backbone_name=self.backbone_name,
+                             training_parameters=self.training_parameters,
+                             verbose=self.verbose)
 
 
 class SummaryFormatter(FilesFormatterFactory):
-    def __init__(self, mode, dataset_name, model_name, backbone_name, training_parameters, verbose=False):
-        super().__init__(mode, dataset_name, model_name, backbone_name, training_parameters, verbose=verbose)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.header_created = False
         self.current_epoch = 0
 
@@ -141,8 +162,8 @@ class SummaryFormatter(FilesFormatterFactory):
 
 
 class CheckpointFormatter(FilesFormatterFactory):
-    def __init__(self, mode, dataset_name, model_name, backbone_name, training_parameters, saver, verbose=False):
-        super().__init__(mode, dataset_name, model_name, backbone_name, training_parameters, verbose=verbose)
+    def __init__(self, saver=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.saver = saver
         self.current_epoch = 0
 
@@ -167,8 +188,8 @@ class CheckpointFormatter(FilesFormatterFactory):
 
 
 class LogsFormatter(FilesFormatterFactory):
-    def __init__(self, mode, dataset_name, model_name, backbone_name, training_parameters, verbose=False):
-        super().__init__(mode, dataset_name, model_name, backbone_name, training_parameters, verbose=verbose)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         colorama_init()
 
