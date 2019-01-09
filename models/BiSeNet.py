@@ -44,7 +44,7 @@ def feature_fusion_module(input_1, input_2, n_filters):
     inputs = conv2d_block(inputs, n_filters=n_filters, kernel_size=[3, 3])
 
     # Global average pooling
-    net = tf.reduce_mean(inputs, [1, 2], keep_dims=True)
+    net = tf.reduce_mean(inputs, [1, 2], keepdims=True)
 
     net = slim.conv2d(net, n_filters, kernel_size=[1, 1])
     net = tf.nn.relu(net)
