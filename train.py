@@ -241,10 +241,13 @@ else:
     train_output_names = list(paths['train'].values())
     validation_output_names = list(paths['val'].values())
 
+train_image_paths = list(subset_associations['train'].keys())
+validation_image_paths = list(subset_associations['validation'].keys())
+
 random.seed(RANDOM_SEED)
-number_of_training_samples = len(subset_associations['train'].keys())
-number_of_validation_samples = len(subset_associations['validation'].keys())
-number_of_used_validation_samples = np.ceil(VALIDATION_RATIO * number_of_validation_samples)
+number_of_training_samples = len(train_image_paths)
+number_of_validation_samples = len(validation_image_paths)
+number_of_used_validation_samples = int(VALIDATION_RATIO * number_of_validation_samples)
 validation_indices = random.sample(range(number_of_validation_samples),
                                    max(1, number_of_used_validation_samples))
 
@@ -294,7 +297,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
             current_index = (current_step_index * BATCH_SIZE + current_batch_index) % number_of_training_samples
             input_image_index = input_indices[current_index]
 
-            input_image_path = subset_associations['train'].keys()[input_image_index]
+            input_image_path = train_image_paths[input_image_index]
             input_image = utils.load_image(input_image_path)
 
             output_image_path = random.choice(subset_associations['train'][input_image_path])
@@ -350,7 +353,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
         segmentation_evaluator.initialize_history()
 
         for image_index in validation_indices:
-            input_image_path = subset_associations['validation'].keys()[image_index]
+            input_image_path = validation_image_paths[image_index]
             input_image = np.float32(utils.load_image(input_image_path))
 
             output_image_path = subset_associations['validation'][input_image_path][0]

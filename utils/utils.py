@@ -208,6 +208,7 @@ def save_image(npdata, out_filename):
 
 
 def load_image(path):
+    path = str(path)
     image = cv2.cvtColor(cv2.imread(path, -1), cv2.COLOR_BGR2RGB)
     return image
 
