@@ -37,10 +37,15 @@ _TODO._
 
 ## Todo list
 
-- [ ] thorough readme file
-- [ ] utility script to check a dataset has valid format
+Ordered by priority.
+
+- [x] allow to select a custom subset folder and override defaults for `train`
+  and `validation`
+- [x] naming strategy for logging files taking into account which subset has
+  been selected
+- [ ] allow usage of a subset of the training data with guarantee of
+  reproducibility, through a ratio and a random seed.
 - [x] check passed training arguments make sense against the provided dataset
-- [ ] add substantial documentation
 - [ ] add support for
   - models:
     - [x] BiSeNet
@@ -50,8 +55,7 @@ _TODO._
     - [x] ResNet101
     - [ ] ResNet50
     - [ ] ResNet152
+- [ ] thorough readme file
+- [ ] utility script to check a dataset has valid format
+- [ ] add substantial documentation
 - [ ] add support for multi-GPU processing
-- [x] allow to select a custom subset folder and override defaults for `train`
-  and `validation`
-- [x] naming strategy for logging files taking into account which subset has
-  been selected
