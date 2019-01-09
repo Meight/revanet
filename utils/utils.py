@@ -118,18 +118,19 @@ def prepare_data(train_path: Path,
         }
     }
 
-    # Got to use an ordered dictionary to ensure reproducibility, as order isn't guaranteed otherwise and we'll be
-    # picking samples randomly in this set.
-    associations = OrderedDict()
+    associations = {}
 
     for split_name, split_data in paths_associations.items():
-        associations[split_name] = []
+        # Got to use an ordered dictionary to ensure reproducibility, as order isn't guaranteed otherwise and we'll be
+        # picking samples randomly in this set.
+        associations[split_name] = OrderedDict()
 
         for image_file_name in split_data['images_path'].glob('*'):
             image_name = image_file_name.stem
-            associations[split_name].append({image_file_name.absolute():
-                                                 [annotation_path.absolute() for annotation_path
-                                                  in split_data['annotations_path'].glob(image_name + '*')]})
+            associations[split_name][image_file_name.absolute()] = [annotation_path.absolute()
+                                                                    for annotation_path
+                                                                    in split_data['annotations_path'].glob(image_name
+                                                                                                           + '*')]
 
     return associations
 
