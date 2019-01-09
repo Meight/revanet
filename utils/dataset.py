@@ -32,15 +32,15 @@ def check_dataset_correctness(dataset_name,
     :param validation_path: The name of the folder containing the validation samples.
     """
     if not dataset_path.exists():
-        raise DatasetDoesNotExistError('Not directory was found at {} for dataset {}.'.format(dataset_path,
-                                                                                              dataset_name))
+        raise DatasetDoesNotExistError('No directory was found at {} for dataset {}.'.format(dataset_path,
+                                                                                             dataset_name))
 
     if not train_path.exists():
         raise DatasetSubsetDoesNotExistError('Train folder not found at {} for dataset {}.'.format(train_path,
                                                                                                    dataset_name))
 
     if not train_annotations_path.exists():
-        raise DatasetSubsetDoesNotExistError('Not annotations folder found for train subset at {} for dataset {}.'
+        raise DatasetSubsetDoesNotExistError('No annotations folder found for train subset at {} for dataset {}.'
                                              .format(train_annotations_path, dataset_name))
 
     if not validation_path.exists():
@@ -48,5 +48,5 @@ def check_dataset_correctness(dataset_name,
                                                                                                         dataset_name))
 
     if not validation_annotations_path.exists():
-        raise DatasetSubsetDoesNotExistError('Not annotations folder found for validation subset at {} for dataset {}.'
+        raise DatasetSubsetDoesNotExistError('No annotations folder found for validation subset at {} for dataset {}.'
                                              .format(validation_annotations_path, dataset_name))
