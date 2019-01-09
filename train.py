@@ -7,16 +7,16 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-from tqdm import tqdm
 
 from utils import utils, segmentation
+from utils.arguments import ratio
 from utils.augmentation import augment_data
 from utils.dataset import check_dataset_correctness
-from utils.models import ModelBuilder
 from utils.files import retrieve_dataset_information
+from utils.models import ModelBuilder
 from utils.naming import FilesFormatterFactory
-from utils.utils import build_images_association_dictionary, gather_multi_label_data, \
-    get_available_annotation_resized_tensors_for_image
+from utils.utils import gather_multi_label_data, \
+    get_available_annotation_resized_tensors_for_image, prepare_data
 from utils.validation import SegmentationEvaluator
 
 parser = argparse.ArgumentParser()
@@ -27,7 +27,7 @@ parser.add_argument('--is-multi-label-segmentation',
 parser.add_argument('--prediction-validation-threshold',
                     action='store',
                     default=0.5,
-                    type=float,
+                    type=ratio,
                     help='Whether or not a threshold should be applied to validate predictions during multi-label'
                          'classification.')
 parser.add_argument('--learning-rate',
@@ -70,6 +70,10 @@ parser.add_argument('--number-of-validation-images',
                     type=int,
                     default=20,
                     help='The number of images to used for validations')
+parser.add_argument('--validation-ratio',
+                    type=ratio,
+                    default=1.0,
+                    help='The ratio of validation samples to use to perform actual validation.')
 parser.add_argument('--model-name',
                     type=str,
                     default="FC-DenseNet56",
@@ -132,6 +136,7 @@ FIRST_EPOCH = int(args.first_epoch)
 BATCH_SIZE = int(args.batch_size)
 LEARNING_RATE = float(args.learning_rate)
 NUMBER_OF_VALIDATION_IMAGES = int(args.number_of_validation_images)
+VALIDATION_RATIO = float(args.validation_ratio)
 SAVE_WEIGHTS_EVERY = int(args.save_weights_every)
 VALIDATE_EVERY = int(args.validate_every)
 
@@ -142,20 +147,9 @@ TRAINING_PARAMETERS = {
     'epochs': NUMBER_OF_EPOCHS,
     'learning_rate': LEARNING_RATE,
     'batch_size': BATCH_SIZE,
-    'validation_steps': NUMBER_OF_VALIDATION_IMAGES,
+    'validation_ratio': VALIDATION_RATIO,
     'input_size': INPUT_SIZE,
     'augmented': is_dataset_augmented
-}
-
-ADDITIONAL_INFO = {
-    'results_directory': RESULTS_DIRECTORY,
-    'model': MODEL_NAME,
-    'backbone': BACKBONE_NAME,
-    'validation_every': VALIDATE_EVERY,
-    'saving_weights_every': SAVE_WEIGHTS_EVERY,
-    'random_seed': RANDOM_SEED,
-    'is_multi_label_classification': IS_MULTI_LABEL_CLASSIFICATION,
-    'validation_threshold': VALIDATION_THRESHOLD
 }
 
 if IS_MULTI_LABEL_CLASSIFICATION:
@@ -233,19 +227,11 @@ checkpoint_formatter = files_formatter_factory.get_checkpoint_formatter(saver=tf
 summary_formatter = files_formatter_factory.get_summary_formatter()
 logs_formatter = files_formatter_factory.get_logs_formatter()
 
-logs_formatter.write(additional_info=ADDITIONAL_INFO)
-
-if CONTINUE_TRAINING:
-    print('Loaded latest model checkpoint.')
-    checkpoint_formatter.restore(session, model_checkpoint_name)
-
-train_output_names, validation_output_names, test_output_names = None, None, None
 paths = None
+subset_associations = None
 
 if not IS_MULTI_LABEL_CLASSIFICATION:
-    train_input_names, train_output_names, validation_input_names, \
-    validation_output_names, test_input_names, test_output_names = utils.prepare_data(dataset_directory=
-                                                                                      str(DATASET_PATH))
+    subset_associations = prepare_data(TRAIN_PATH, TRAIN_ANNOTATIONS_PATH, VALIDATION_PATH, VALIDATION_ANNOTATIONS_PATH)
 else:
     paths = gather_multi_label_data(dataset_directory=DATASET_PATH)
 
@@ -255,31 +241,47 @@ else:
     train_output_names = list(paths['train'].values())
     validation_output_names = list(paths['val'].values())
 
+random.seed(RANDOM_SEED)
+number_of_training_samples = len(subset_associations['train'].keys())
+number_of_validation_samples = len(subset_associations['validation'].keys())
+number_of_used_validation_samples = np.ceil(VALIDATION_RATIO * number_of_validation_samples)
+validation_indices = random.sample(range(number_of_validation_samples),
+                                   max(1, number_of_used_validation_samples))
+
+ADDITIONAL_INFO = {
+    'results_directory': RESULTS_DIRECTORY,
+    'model': MODEL_NAME,
+    'backbone': BACKBONE_NAME,
+    'validation_every': VALIDATE_EVERY,
+    'saving_weights_every': SAVE_WEIGHTS_EVERY,
+    'random_seed': RANDOM_SEED,
+    'is_multi_label_classification': IS_MULTI_LABEL_CLASSIFICATION,
+    'validation_threshold': VALIDATION_THRESHOLD,
+    'training_samples': number_of_training_samples,
+    'validation_samples': number_of_validation_samples,
+    'used_validation_samples': number_of_used_validation_samples,
+    'validation_measures': validation_measures
+}
+
+logs_formatter.write(additional_info=ADDITIONAL_INFO)
+
+if CONTINUE_TRAINING:
+    print('Loaded latest model checkpoint.')
+    checkpoint_formatter.restore(session, model_checkpoint_name)
+
 average_measures_per_epoch = {
     'loss': [],
     'iou': [],
     'scores': []
 }
 
-random.seed(RANDOM_SEED)
-validation_images_count = min(NUMBER_OF_VALIDATION_IMAGES, len(validation_input_names))
-validation_indices = random.sample(range(len(validation_input_names)), validation_images_count)
-
-if not IS_MULTI_LABEL_CLASSIFICATION:
-    images_association = build_images_association_dictionary(train_input_names, train_output_names)
-else:
-    images_association = None
-
-assert IS_MULTI_LABEL_CLASSIFICATION or images_association is not None
-
 for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     current_losses = []
     samples_seen = 0
 
-    number_of_training_images = len(train_input_names)
-    input_indices = np.random.permutation(number_of_training_images)
+    input_indices = np.random.permutation(number_of_training_samples)
 
-    number_of_steps = len(train_output_names) // BATCH_SIZE
+    number_of_steps = number_of_training_samples // BATCH_SIZE
     start_time = time.time()
     epoch_start_time = time.time()
 
@@ -289,19 +291,19 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
         # Collect a batch of images.
         for current_batch_index in range(BATCH_SIZE):
-            current_index = (current_step_index * BATCH_SIZE + current_batch_index) % number_of_training_images
+            current_index = (current_step_index * BATCH_SIZE + current_batch_index) % number_of_training_samples
             input_image_index = input_indices[current_index]
 
-            input_image_name = train_input_names[input_image_index]
-            input_image = utils.load_image(input_image_name)
+            input_image_path = subset_associations['train'].keys()[input_image_index]
+            input_image = utils.load_image(input_image_path)
+
+            output_image_path = random.choice(subset_associations['train'][input_image_path])
 
             if not IS_MULTI_LABEL_CLASSIFICATION:
-                output_image_name = random.choice(images_association[input_image_name])
-                output_image = utils.load_image(output_image_name)
+                output_image = utils.load_image(output_image_path)
             else:
                 n_encoded_masks = get_available_annotation_resized_tensors_for_image((INPUT_SIZE, INPUT_SIZE),
-                                                                                     train_output_names[
-                                                                                         input_image_index],
+                                                                                     output_image_path,
                                                                                      class_colors_dictionary)
                 output_image = random.choice(n_encoded_masks)
 
@@ -347,11 +349,14 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     if epoch % VALIDATE_EVERY == 0:
         segmentation_evaluator.initialize_history()
 
-        for image_index in tqdm(validation_indices):
-            input_image = np.float32(utils.load_image(validation_input_names[image_index]))
+        for image_index in validation_indices:
+            input_image_path = subset_associations['validation'].keys()[image_index]
+            input_image = np.float32(utils.load_image(input_image_path))
+
+            output_image_path = subset_associations['validation'][input_image_path][0]
 
             if not IS_MULTI_LABEL_CLASSIFICATION:
-                ground_truth = utils.load_image(validation_output_names[image_index])
+                ground_truth = utils.load_image(output_image_path)
 
                 input_image, ground_truth = utils.resize_to_size(input_image, ground_truth, desired_size=INPUT_SIZE)
                 ground_truth = segmentation.one_hot_to_image(segmentation.image_to_one_hot(ground_truth, class_colors))
@@ -369,12 +374,9 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
                 segmentation_evaluator.evaluate(prediction=output_image,
                                                 annotation=ground_truth)
-
-                file_name = utils.file_path_to_name(validation_input_names[image_index])
             else:
                 n_encoded_masks = get_available_annotation_resized_tensors_for_image(INPUT_SIZE, INPUT_SIZE,
-                                                                                     validation_output_names[
-                                                                                         image_index],
+                                                                                     output_image_path,
                                                                                      class_colors_dictionary)
 
                 ground_truth = random.choice(n_encoded_masks)  # (INPUT_SIZE, INPUT_SIZE, NUMBER_OF_CLASSES)

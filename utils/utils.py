@@ -2,6 +2,8 @@ from __future__ import print_function, division
 
 import glob
 import os
+from collections import OrderedDict
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -101,7 +103,38 @@ def to_n_hot_encoded(masks_dictionary, class_names):
     return np.asarray([1 if class_name in masks_dictionary.keys() else 0 for class_name in class_names])
 
 
-def prepare_data(dataset_directory):
+def prepare_data(train_path: Path,
+                 train_annotations_path: Path,
+                 validation_path: Path,
+                 validation_annotations_path: Path):
+    paths_associations = {
+        'train': {
+            'images_path': train_path,
+            'annotations_path': train_annotations_path
+        },
+        'validation': {
+            'images_path': validation_path,
+            'annotations_path': validation_annotations_path
+        }
+    }
+
+    # Got to use an ordered dictionary to ensure reproducibility, as order isn't guaranteed otherwise and we'll be
+    # picking samples randomly in this set.
+    associations = OrderedDict()
+
+    for split_name, split_data in paths_associations.items():
+        associations[split_name] = []
+
+        for image_file_name in split_data['images_path'].glob('*'):
+            image_name = image_file_name.stem
+            associations[split_name].append({image_file_name.absolute():
+                                                 [annotation_path.absolute() for annotation_path
+                                                  in split_data['annotations_path'].glob(image_name + '*')]})
+
+    return associations
+
+
+def prepare_data_bak(dataset_directory):
     train_input_names = []
     train_output_names = []
     val_input_names = []
@@ -128,9 +161,6 @@ def prepare_data(dataset_directory):
         test_output_names += glob.glob(cwd + "/" + dataset_directory + "/test_labels/" + file + "*")
     train_input_names.sort(), train_output_names.sort(), val_input_names.sort(), val_output_names.sort(), test_input_names.sort(), test_output_names.sort()
     return train_input_names, train_output_names, val_input_names, val_output_names, test_input_names, test_output_names
-
-
-
 
 
 # Takes an absolute file path and returns the name of the file without th extension
