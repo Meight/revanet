@@ -66,10 +66,6 @@ parser.add_argument('--batch-size',
                     type=int,
                     default=1,
                     help='Number of images in each batch')
-parser.add_argument('--number-of-validation-images',
-                    type=int,
-                    default=20,
-                    help='The number of images to used for validations')
 parser.add_argument('--validation-ratio',
                     type=ratio,
                     default=1.0,
@@ -135,7 +131,6 @@ NUMBER_OF_EPOCHS = int(args.number_of_epochs)
 FIRST_EPOCH = int(args.first_epoch)
 BATCH_SIZE = int(args.batch_size)
 LEARNING_RATE = float(args.learning_rate)
-NUMBER_OF_VALIDATION_IMAGES = int(args.number_of_validation_images)
 VALIDATION_RATIO = float(args.validation_ratio)
 SAVE_WEIGHTS_EVERY = int(args.save_weights_every)
 VALIDATE_EVERY = int(args.validate_every)
@@ -149,7 +144,10 @@ TRAINING_PARAMETERS = {
     'batch_size': BATCH_SIZE,
     'validation_ratio': VALIDATION_RATIO,
     'input_size': INPUT_SIZE,
-    'augmented': is_dataset_augmented
+    'train_images_path': TRAIN_PATH,
+    'train_annotations_path': TRAIN_ANNOTATIONS_PATH,
+    'validation_images_path': VALIDATION_PATH,
+    'validation_annotations_path': VALIDATION_ANNOTATIONS_PATH
 }
 
 if IS_MULTI_LABEL_CLASSIFICATION:
