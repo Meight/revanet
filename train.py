@@ -323,9 +323,9 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
             if not IS_MULTI_LABEL_CLASSIFICATION:
                 ground_truth = utils.load_image(validation_output_names[image_index])
-                ground_truth = segmentation.one_hot_to_image(segmentation.image_to_one_hot(ground_truth, class_colors))
 
                 input_image, ground_truth = utils.resize_to_size(input_image, ground_truth, desired_size=INPUT_SIZE)
+                ground_truth = segmentation.one_hot_to_image(segmentation.image_to_one_hot(ground_truth, class_colors))
 
                 input_image = np.expand_dims(input_image, axis=0) / 255.0
 
