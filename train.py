@@ -251,7 +251,9 @@ validation_image_paths = list(subset_associations['validation'].keys())
 
 random.seed(RANDOM_SEED)
 number_of_training_samples = len(train_image_paths)
-number_of_training_samples = int(TRAINING_RATIO * number_of_training_samples)
+number_of_used_training_samples = int(TRAINING_RATIO * number_of_training_samples)
+training_indices = random.sample(range(number_of_training_samples),
+                                 max(1, number_of_used_training_samples))
 number_of_validation_samples = len(validation_image_paths)
 number_of_used_validation_samples = int(VALIDATION_RATIO * number_of_validation_samples)
 validation_indices = random.sample(range(number_of_validation_samples),
@@ -289,9 +291,9 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     current_losses = []
     samples_seen = 0
 
-    input_indices = np.random.permutation(number_of_training_samples)
+    input_indices = np.random.permutation(training_indices)
 
-    number_of_steps = number_of_training_samples // BATCH_SIZE
+    number_of_steps = number_of_used_training_samples // BATCH_SIZE
     start_time = time.time()
     epoch_start_time = time.time()
 
@@ -301,7 +303,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
         # Collect a batch of images.
         for current_batch_index in range(BATCH_SIZE):
-            current_index = (current_step_index * BATCH_SIZE + current_batch_index) % number_of_training_samples
+            current_index = (current_step_index * BATCH_SIZE + current_batch_index) % number_of_used_training_samples
             input_image_index = input_indices[current_index]
 
             input_image_path = train_image_paths[input_image_index]
