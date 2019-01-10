@@ -52,15 +52,15 @@ class FilesFormatterFactory:
     def _generate_full_detailed_path(self):
         return Path(self.results_folder,
                     self.mode,
-                    self.backbone_name + self.model_name)
+                    self.backbone_name + '-' + self.model_name)
 
     def _generate_parameters_string(self):
         return '_'.join(['{}-{}'.format(self._get_initials(parameter_name), self._format_parameter(parameter_value))
                          for parameter_name, parameter_value
                          in self.training_parameters.items()
-                         if parameter_name not in ['train_annotations_path',
+                         if parameter_name not in ['train_path',
                                                    'validation_images_path',
-                                                   'validation_annotation_path']])
+                                                   'validation_annotations_path']])
 
     @staticmethod
     def _format_parameter(parameter):

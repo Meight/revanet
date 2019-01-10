@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import argparse
+import os
 import random
 import time
 from pathlib import Path
@@ -18,6 +19,8 @@ from utils.naming import FilesFormatterFactory
 from utils.utils import gather_multi_label_data, \
     get_available_annotation_resized_tensors_for_image, prepare_data
 from utils.validation import SegmentationEvaluator
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--is-multi-label-segmentation',
@@ -272,7 +275,8 @@ ADDITIONAL_INFO = {
     'used_training_samples': number_of_training_samples,
     'validation_samples': number_of_validation_samples,
     'used_validation_samples': number_of_used_validation_samples,
-    'validation_measures': validation_measures
+    'validation_measures': validation_measures,
+    'train_annotations_folder': TRAIN_ANNOTATIONS_PATH
 }
 
 logs_formatter.write(additional_info=ADDITIONAL_INFO)

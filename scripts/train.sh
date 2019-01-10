@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=training-full-val
+#SBATCH --job-name=bisenet
 #SBATCH --output=/projets/thesepizenberg/deep-learning/logs/bisenet-%j.out
 #SBATCH --error=/projets/thesepizenberg/deep-learning/logs/bisenet-%j.out
 
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=4
 #SBATCH --partition=GPUNodes
 #SBATCH --gres=gpu:2
+#SBATCH --gres-flags=enforce-binding
 #SBATCH --mem-per-cpu=9000M
 
 set -e
@@ -22,13 +23,15 @@ TRAIN_SCRIPT_DIR="/projets/thesepizenberg/deep-learning/revanet"
 srun keras-py3-tf virtualenv --system-site-packages ${VENV_PATH}
 wait
 
+echo "Launching with on train folder: ${6}"
 srun keras-py3-tf ${VENV_PATH}/bin/python "$TRAIN_SCRIPT_DIR/train.py" \
-                --number-of-epochs=75 \
+                --model-name=${1} \
+                --backbone-name=${2} \
+                --input-size=${3} \
+                --batch-size=${4} \
+                --dataset-name=${5} \
+                --train-annotations-folder=${6} \
+                --number-of-epochs=50 \
                 --save-weights-every=24 \
-                --validate-every=1 \
-                --model-name=BiSeNet \
-                --backbone-name=ResNet101 \
-                --input-size=128 \
-                --batch-size=1 \
-                --dataset-name=small-pascal
+                --validate-every=1
 wait
