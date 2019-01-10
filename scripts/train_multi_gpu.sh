@@ -4,9 +4,9 @@
 #SBATCH --error=/projets/thesepizenberg/deep-learning/logs/bisenet-%j.out
 
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=4
 #SBATCH --partition=GPUNodes
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --mem-per-cpu=9000M
 
 set -e
@@ -21,18 +21,16 @@ TRAIN_SCRIPT_DIR="/projets/thesepizenberg/deep-learning/revanet"
 srun keras-py3-tf virtualenv --system-site-packages /users/thesepizenberg/mlebouch/venv
 wait
 
-srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/pip3 install colorama
-wait
-
-srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$TRAIN_SCRIPT_DIR/train.py" \
-                --is-multi-label-segmentation \
-                --number-of-epochs=75 \
-                --save-weights-every=20 \
+srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$TRAIN_SCRIPT_DIR/train_multi_gpu.py" \
+                --model-name=${1} \
+                --backbone-name=${2} \
+                --input-size=${3} \
+                --batch-size=${4} \
+                --dataset-name=${5} \
+                --train-annotations-folder=${6} \
+                --number-of-epochs=15 \
+                --save-weights-every=5 \
                 --validate-every=1 \
-                --number-of-validation-images=20 \
-                --model-name=BiSeNet \
-                --backbone-name=ResNet101 \
-                --input-size=256 \
-                --batch-size=1 \
-                --dataset-name=voc-ml
+                --number-of-gpus=1 \
+                --number-of-cpus=4
 wait
