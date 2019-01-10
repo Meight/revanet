@@ -66,6 +66,10 @@ parser.add_argument('--batch-size',
                     type=int,
                     default=1,
                     help='Number of images in each batch')
+parser.add_argument('--training-ratio',
+                    type=ratio,
+                    default=1.0,
+                    help='The ratio of training samples to use to perform actual training.')
 parser.add_argument('--validation-ratio',
                     type=ratio,
                     default=1.0,
@@ -131,6 +135,7 @@ NUMBER_OF_EPOCHS = int(args.number_of_epochs)
 FIRST_EPOCH = int(args.first_epoch)
 BATCH_SIZE = int(args.batch_size)
 LEARNING_RATE = float(args.learning_rate)
+TRAINING_RATIO = float(args.training_ratio)
 VALIDATION_RATIO = float(args.validation_ratio)
 SAVE_WEIGHTS_EVERY = int(args.save_weights_every)
 VALIDATE_EVERY = int(args.validate_every)
@@ -142,6 +147,7 @@ TRAINING_PARAMETERS = {
     'epochs': NUMBER_OF_EPOCHS,
     'learning_rate': LEARNING_RATE,
     'batch_size': BATCH_SIZE,
+    'training_ratio': TRAINING_RATIO,
     'validation_ratio': VALIDATION_RATIO,
     'input_size': INPUT_SIZE,
     'train_images_path': TRAIN_PATH,
@@ -245,6 +251,7 @@ validation_image_paths = list(subset_associations['validation'].keys())
 
 random.seed(RANDOM_SEED)
 number_of_training_samples = len(train_image_paths)
+number_of_training_samples = int(TRAINING_RATIO * number_of_training_samples)
 number_of_validation_samples = len(validation_image_paths)
 number_of_used_validation_samples = int(VALIDATION_RATIO * number_of_validation_samples)
 validation_indices = random.sample(range(number_of_validation_samples),
@@ -259,7 +266,8 @@ ADDITIONAL_INFO = {
     'random_seed': RANDOM_SEED,
     'is_multi_label_classification': IS_MULTI_LABEL_CLASSIFICATION,
     'validation_threshold': VALIDATION_THRESHOLD,
-    'training_samples': number_of_training_samples,
+    'training_samples': len(train_image_paths),
+    'used_training_samples': number_of_training_samples,
     'validation_samples': number_of_validation_samples,
     'used_validation_samples': number_of_used_validation_samples,
     'validation_measures': validation_measures
