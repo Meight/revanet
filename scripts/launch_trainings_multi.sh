@@ -6,7 +6,7 @@ MODEL_NAMES=("BiSeNet") # "FC-DenseNet103" "GCN" "DeepLabV3_plus" "RefineNet" "D
 FRONTEND_NAMES=("ResNet101")
 INPUT_SIZE=(256)
 BATCH_SIZE=(4)
-DATASET="augmented-pascal"
+DATASET="augmented-pascal-altered"
 
 ALTERATION="erosion"
 

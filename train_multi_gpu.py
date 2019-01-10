@@ -188,7 +188,7 @@ number_of_classes = len(class_colors)
 
 segmentation_evaluator = SegmentationEvaluator(validation_measures, number_of_classes)
 
-config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 

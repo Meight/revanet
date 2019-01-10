@@ -12,6 +12,7 @@
 set -e
 
 # Various script and dataset paths.
+VENV_PATH="/users/thesepizenberg/mlebouch/venv-tf"
 TRAIN_SCRIPT_DIR="/projets/thesepizenberg/deep-learning/revanet"
 
 # Begin script.
@@ -21,7 +22,7 @@ TRAIN_SCRIPT_DIR="/projets/thesepizenberg/deep-learning/revanet"
 srun keras-py3-tf virtualenv --system-site-packages /users/thesepizenberg/mlebouch/venv
 wait
 
-srun keras-py3-tf /users/thesepizenberg/mlebouch/venv/bin/python "$TRAIN_SCRIPT_DIR/train_multi_gpu.py" \
+srun keras-py3-tf ${VENV_PATH}/bin/python "$TRAIN_SCRIPT_DIR/train_multi_gpu.py" \
                 --model-name=${1} \
                 --backbone-name=${2} \
                 --input-size=${3} \

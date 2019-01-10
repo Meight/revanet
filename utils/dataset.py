@@ -76,6 +76,7 @@ def generate_dataset(subset_associations, input_size, number_of_epochs, batch_si
 
     parser = ExampleParser(input_size=input_size)
 
+
     training_dataset = tf.data.Dataset.from_tensor_slices(list(map(load_example, associations)))
     training_dataset = training_dataset.shuffle(buffer_size=3000)
     training_dataset = training_dataset.map(parser, num_parallel_calls=number_of_cpus)

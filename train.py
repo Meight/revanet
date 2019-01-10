@@ -144,7 +144,7 @@ SAVE_WEIGHTS_EVERY = int(args.save_weights_every)
 VALIDATE_EVERY = int(args.validate_every)
 
 RANDOM_SEED = 2018
-PRINT_INFO_EVERY = 30  # Period (in epochs) of prints.
+PRINT_INFO_EVERY = 5  # Period (in steps) of prints.
 
 TRAINING_PARAMETERS = {
     'epochs': NUMBER_OF_EPOCHS,

@@ -5,8 +5,8 @@ SCRIPT_PATH="/projets/thesepizenberg/deep-learning/revanet/scripts"
 MODEL_NAMES=("BiSeNet") # "FC-DenseNet103" "GCN" "DeepLabV3_plus" "RefineNet" "DenseASPP" "PSPNet" "DDSC" "AdapNet")
 FRONTEND_NAMES=("ResNet101")
 INPUT_SIZE=(256)
-BATCH_SIZE=(4)
-DATASET="augmented-pascal"
+BATCH_SIZE=(1)
+DATASET="augmented-pascal-altered"
 
 ALTERATION="erosion"
 
