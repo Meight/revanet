@@ -43,7 +43,7 @@ Ordered by priority.
   and `validation`
 - [x] naming strategy for logging files taking into account which subset has
   been selected
-- [ ] allow usage of a subset of the training data with guarantee of
+- [x] allow usage of a subset of the training data with guarantee of
   reproducibility, through a ratio and a random seed.
 - [x] check passed training arguments make sense against the provided dataset
 - [ ] add support for
@@ -55,6 +55,7 @@ Ordered by priority.
     - [x] ResNet101
     - [ ] ResNet50
     - [ ] ResNet152
+- [ ] change the data handling to make use of the `tf.Dataset` API
 - [ ] thorough readme file
 - [ ] utility script to check a dataset has valid format
 - [ ] add substantial documentation
