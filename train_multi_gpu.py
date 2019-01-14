@@ -7,18 +7,16 @@ import time
 from pathlib import Path
 
 import numpy as np
-import tensorflow as tf
 from tqdm import tqdm
 
-from utils import utils, segmentation
+import tensorflow as tf
+from utils import segmentation, utils
 from utils.arguments import ratio
-from utils.augmentation import augment_data
 from utils.dataset import check_dataset_correctness, generate_dataset
 from utils.files import retrieve_dataset_information
 from utils.models import ModelBuilder
 from utils.naming import FilesFormatterFactory
-from utils.utils import gather_multi_label_data, \
-    get_available_annotation_resized_tensors_for_image, prepare_data
+from utils.utils import gather_multi_label_data, prepare_data
 from utils.validation import SegmentationEvaluator
 
 parser = argparse.ArgumentParser()
@@ -31,13 +29,14 @@ parser.add_argument('--number-of-gpus',
 parser.add_argument('--is-multi-label-segmentation',
                     action='store_true',
                     default=False,
-                    help='Whether or not to interpret the task as multi-label classification.')
+                    help='''Whether or not to interpret the task as multi-label
+                    classification.''')
 parser.add_argument('--prediction-validation-threshold',
                     action='store',
                     default=0.5,
                     type=ratio,
-                    help='Whether or not a threshold should be applied to validate predictions during multi-label'
-                         'classification.')
+                    help='''Whether or not a threshold should be applied to
+                    validate predictions during multi-label classification.''')
 parser.add_argument('--learning-rate',
                     type=float,
                     default=0.0001,
@@ -77,39 +76,48 @@ parser.add_argument('--batch-size',
 parser.add_argument('--training-ratio',
                     type=ratio,
                     default=1.0,
-                    help='The ratio of training samples to use to perform actual training.')
+                    help='''The ratio of training samples to use to perform
+                    actual training.''')
 parser.add_argument('--validation-ratio',
                     type=ratio,
                     default=1.0,
-                    help='The ratio of validation samples to use to perform actual validation.')
+                    help='''The ratio of validation samples to use to perform
+                    actual validation.''')
 parser.add_argument('--model-name',
                     type=str,
                     default="FC-DenseNet56",
-                    help='The model you are using. See model_builder.py for supported models')
+                    help='''The model you are using. See model_builder.py for
+                    supported models''')
 parser.add_argument('--backbone-name',
                     type=str,
                     default="ResNet101",
-                    help='The backbone to use. See frontend_builder.py for supported models')
+                    help='''The backbone to use. See frontend_builder.py for
+                    supported models''')
 parser.add_argument('--results-directory',
                     type=str,
                     default='/projets/thesepizenberg/deep-learning/revanet/',
-                    help='Path to the directory where the results are to be stored.')
+                    help='''Path to the directory where the results are to
+                    be stored.''')
 parser.add_argument('--train-folder',
                     type=str,
                     default='train',
-                    help='Name of the folder in which the training samples are to be found.')
+                    help='''Name of the folder in which the training samples
+                    are to be found.''')
 parser.add_argument('--train-annotations-folder',
                     type=str,
                     default='train_annotations',
-                    help='Name of the folder containing the annotations corresponding to the training samples.')
+                    help='''Name of the folder containing the annotations
+                    corresponding to the training samples.''')
 parser.add_argument('--validation-folder',
                     type=str,
                     default='validation',
-                    help='Name of the folder in which the validation samples are to be found.')
+                    help='''Name of the folder in which the validation samples
+                    are to be found.''')
 parser.add_argument('--validation-annotations-folder',
                     type=str,
                     default='validation_annotations',
-                    help='Name of the folder containing the annotations corresponding to the validation samples.')
+                    help='''Name of the folder containing the annotations
+                    corresponding to the validation samples.''')
 args = parser.parse_args()
 
 IS_MULTI_LABEL_CLASSIFICATION = bool(args.is_multi_label_segmentation)
@@ -124,7 +132,8 @@ DATASET_PATH = Path('datasets', DATASET_NAME)
 TRAIN_PATH = Path(DATASET_PATH, str(args.train_folder))
 TRAIN_ANNOTATIONS_PATH = Path(DATASET_PATH, str(args.train_annotations_folder))
 VALIDATION_PATH = Path(DATASET_PATH, str(args.validation_folder))
-VALIDATION_ANNOTATIONS_PATH = Path(DATASET_PATH, str(args.validation_annotations_folder))
+VALIDATION_ANNOTATIONS_PATH = Path(DATASET_PATH,
+                                   str(args.validation_annotations_folder))
 RESULTS_DIRECTORY = str(args.results_directory)
 
 # Ensure that all required folders and files exist and are well defined.
@@ -171,7 +180,12 @@ os.environ["CUDA_VISIBLE_DEVICES"] = str(NUMBER_OF_GPUS)
 if IS_MULTI_LABEL_CLASSIFICATION:
     validation_measures = ['exact_match_ratio', 'hamming_score']
 else:
-    validation_measures = ['accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou']
+    validation_measures = ['accuracy',
+                           'accuracy_per_class',
+                           'precision',
+                           'recall',
+                           'f1',
+                           'iou']
 
 files_formatter_factory = FilesFormatterFactory(mode='training',
                                                 dataset_name=DATASET_NAME,
