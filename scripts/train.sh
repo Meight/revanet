@@ -13,15 +13,15 @@
 set -e
 
 # Various script and dataset paths.
-VENV_PATH="/users/thesepizenberg/mlebouch/venv-tf"
 TRAIN_SCRIPT_DIR="/projets/thesepizenberg/deep-learning/revanet"
+VENV_PATH=$TRAIN_SCRIPT_DIR
 
 # Begin script.
 
 # Create a virtual environment from the Docker container.
 
-srun keras-py3-tf virtualenv --system-site-packages ${VENV_PATH}
-wait
+# srun keras-py3-tf virtualenv --system-site-packages ${VENV_PATH}
+# wait
 
 echo "Launching with on train folder: ${6}"
 srun keras-py3-tf ${VENV_PATH}/bin/python "$TRAIN_SCRIPT_DIR/train.py" \
