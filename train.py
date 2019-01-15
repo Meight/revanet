@@ -20,7 +20,7 @@ from utils.utils import gather_multi_label_data, \
     get_available_annotation_resized_tensors_for_image, prepare_data
 from utils.validation import SegmentationEvaluator
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--is-multi-label-segmentation',
