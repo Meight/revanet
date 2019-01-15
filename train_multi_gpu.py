@@ -3,6 +3,13 @@ This module aims at parallelizing the processing of batches of samples by
 better spreading the work load between the CPUs and the GPUs. As a matter of
 fact, want the GPUs to only perform the heavy lifting of handling the model
 while all the preprocessing should ony be performed by the CPUs.
+
+The approach implemented here is a kind of data parallelism: each GPU sees
+different batches of samples and computes predictions and gradients on its own.
+
+
+The model is kept onto the CPU which waits for all GPU gradient computations,
+and then averages the result to update the model's weights.
 """
 
 from __future__ import print_function
@@ -217,39 +224,37 @@ number_of_classes = len(class_colors)
 segmentation_evaluator = SegmentationEvaluator(validation_measures,
                                                number_of_classes)
 
+# Allow soft placement so that operations can be placed into an alternative
+# device automatically if ever the requested device is unavailable.
 config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
+# Allow gradual memory growth so as to not request all of the GPU memory
+# if it's pointless.
 config.gpu_options.allow_growth = True
+# Instantiate the TF session with the above configuration.
 session = tf.Session(config=config)
 
 input_tensor = tf.placeholder(tf.float32, shape=[None, None, None, 3])
 output_tensor = tf.placeholder(
     tf.float32, shape=[None, None, None, number_of_classes])
 
-with tf.device('/cpu:0'):
-    model_builder = ModelBuilder(
+model_builder = ModelBuilder(
         number_of_classes=number_of_classes,
         input_size=INPUT_SIZE,
         backbone_name=BACKBONE_NAME,
         is_training=True)
-    predictions_tensor, init_fn = model_builder.build(
+predictions_tensor, init_fn = model_builder.build(
         model_name=MODEL_NAME, inputs=input_tensor)
 
-if not IS_MULTI_LABEL_CLASSIFICATION:
-    weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
-    unc = tf.where(
-        tf.equal(tf.reduce_sum(output_tensor, axis=-1), 0),
-        tf.zeros(shape=weights_shape), tf.ones(shape=weights_shape))
+weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
+unc = tf.where(
+    tf.equal(tf.reduce_sum(output_tensor, axis=-1), 0),
+    tf.zeros(shape=weights_shape), tf.ones(shape=weights_shape))
 
-    adapted_loss = tf.nn.softmax_cross_entropy_with_logits_v2
-    loss = tf.reduce_mean(
-        tf.losses.compute_weighted_loss(
-            weights=tf.cast(unc, tf.float32),
-            losses=adapted_loss(
-                logits=predictions_tensor, labels=output_tensor)))
-else:
-    adapted_loss = tf.nn.sigmoid_cross_entropy_with_logits
-    loss = tf.reduce_mean(
-        adapted_loss(logits=predictions_tensor, labels=output_tensor))
+adapted_loss = tf.nn.softmax_cross_entropy_with_logits_v2
+loss = tf.reduce_mean(
+    tf.losses.compute_weighted_loss(
+        weights=tf.cast(unc, tf.float32),
+        losses=adapted_loss(logits=predictions_tensor, labels=output_tensor)))
 
 opt = tf.train.RMSPropOptimizer(
     learning_rate=LEARNING_RATE, decay=0.995, momentum=0.9).minimize(
