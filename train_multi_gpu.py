@@ -1,3 +1,10 @@
+"""
+This module aims at parallelizing the processing of batches of samples by
+better spreading the work load between the CPUs and the GPUs. As a matter of
+fact, want the GPUs to only perform the heavy lifting of handling the model
+while all the preprocessing should ony be performed by the CPUs.
+"""
+
 from __future__ import print_function
 
 import argparse
@@ -226,7 +233,6 @@ with tf.device('/cpu:0'):
         is_training=True)
     predictions_tensor, init_fn = model_builder.build(
         model_name=MODEL_NAME, inputs=input_tensor)
-
 
 if not IS_MULTI_LABEL_CLASSIFICATION:
     weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
