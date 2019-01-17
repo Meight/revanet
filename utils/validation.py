@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from pprint import pprint
+from sklearn.metrics import jaccard_similarity_score
 
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 import numpy as np
@@ -15,10 +16,13 @@ class SegmentationEvaluator:
     :param number_of_classes:   The number of classes in the dataset. Required for the computation of some
                                     of the provided measures.
     """
+
     def __init__(self, measure_names, number_of_classes):
         for measure_name in measure_names:
-            if measure_name not in self._get_available_measures_with_functions().keys():
-                raise ValueError('Measure {} is not supported for validation.'.format(measure_name))
+            if measure_name not in self._get_available_measures_with_functions(
+            ).keys():
+                raise ValueError('Measure {} is not supported for validation.'.
+                                 format(measure_name))
 
         self.active_measures = measure_names
         self.number_of_classes = number_of_classes
@@ -46,8 +50,10 @@ class SegmentationEvaluator:
         annotation = annotation.flatten()
 
         for measure_name in self.active_measures:
-            measure_function = self._get_available_measures_with_functions()[measure_name]
-            self.measures_history[measure_name].append(measure_function(prediction, annotation))
+            measure_function = self._get_available_measures_with_functions(
+            )[measure_name]
+            self.measures_history[measure_name].append(
+                measure_function(prediction, annotation))
 
     def get_averaged_measures(self, current_epoch):
         """
@@ -62,7 +68,8 @@ class SegmentationEvaluator:
 
         for measure_name in self.active_measures:
             averaged_measures.update({
-                measure_name: np.mean(self.measures_history[measure_name])
+                measure_name:
+                np.mean(self.measures_history[measure_name])
             })
 
         return averaged_measures
@@ -85,15 +92,18 @@ class SegmentationEvaluator:
 
     @staticmethod
     def compute_precision(prediction, annotation):
-        return precision_score(y_true=annotation, y_pred=prediction, average='weighted')
+        return precision_score(
+            y_true=annotation, y_pred=prediction, average='weighted')
 
     @staticmethod
     def compute_recall(prediction, annotation):
-        return recall_score(y_true=annotation, y_pred=prediction, average='weighted')
+        return recall_score(
+            y_true=annotation, y_pred=prediction, average='weighted')
 
     @staticmethod
     def compute_f1(prediction, annotation):
-        return f1_score(y_true=annotation, y_pred=prediction, average='weighted')
+        return f1_score(
+            y_true=annotation, y_pred=prediction, average='weighted')
 
     @staticmethod
     def compute_accuracy(prediction, annotation):
@@ -127,24 +137,12 @@ class SegmentationEvaluator:
 
     @staticmethod
     def compute_mean_iou(prediction, annotation):
-        unique_labels = np.unique(annotation)
-        num_unique_labels = len(unique_labels)
-
-        intersection = np.zeros(num_unique_labels)
-        union = np.zeros(num_unique_labels)
-
-        for index, val in enumerate(unique_labels):
-            prediction_i = prediction == val
-            label_i = annotation == val
-
-            intersection[index] = float(np.sum(np.logical_and(label_i, prediction_i)))
-            union[index] = float(np.sum(np.logical_or(label_i, prediction_i)))
-
-        return np.mean(intersection / union)
+        jaccard_similarity_score(annotation.flatten(), prediction.flatten())
 
     @staticmethod
     def compute_exact_match_ratio(prediction, annotation):
-        return accuracy_score(y_true=annotation, y_pred=prediction, normalize=True)
+        return accuracy_score(
+            y_true=annotation, y_pred=prediction, normalize=True)
 
     @staticmethod
     def compute_hamming_score(prediction, annotation):
@@ -160,7 +158,9 @@ class SegmentationEvaluator:
             if len(annotation_set) == 0 and len(prediction_set) == 0:
                 tmp_a = 1
             else:
-                tmp_a = len(annotation_set.intersection(prediction_set)) / float(len(annotation_set.union(prediction_set)))
+                tmp_a = len(
+                    annotation_set.intersection(prediction_set)) / float(
+                        len(annotation_set.union(prediction_set)))
 
             acc_list.append(tmp_a)
 
