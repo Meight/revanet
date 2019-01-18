@@ -9,6 +9,7 @@ import numpy as np
 
 import tensorflow as tf
 from utils import utils
+from utils.segmentation import colour_code_segmentation, image_to_one_hot
 
 
 def _int64_feature(value):
@@ -88,8 +89,9 @@ class AugmenterProxy:
 
     This thing was terribly documented is a bit of a work around.
     """
-    def __init__(self, background_augmenter):
+    def __init__(self, background_augmenter, class_colors):
         self.background_augmenter = background_augmenter
+        self.class_colors = class_colors
 
     def __call__(self):
         while True:
@@ -99,15 +101,18 @@ class AugmenterProxy:
                 break
 
             # Augmented images here are not yet normalized!
-            yield batch.images_aug[0], batch.segmentation_maps_aug[0].draw()
+            yield batch.images_aug[0], image_to_one_hot(batch.segmentation_maps_aug[0].draw(), self.class_colors)
 
 
 def generate_dataset(background_augmenter, input_size, number_of_epochs,
-                     batch_size, number_of_cpus=4, number_of_gpus=1, ratio=1):
-    generator = AugmenterProxy(background_augmenter)
+                     batch_size, number_of_cpus=4, number_of_gpus=1, ratio=1, class_colors=None):
+    generator = AugmenterProxy(background_augmenter, class_colors)
     parser = ExampleParser(input_size=input_size)
 
-    training_dataset = tf.data.Dataset.from_generator(generator, output_types=(tf.int32, tf.int32))
+    images_shape = (input_size, input_size, 3)
+    annotations_shape = (input_size, input_size, 21)
+
+    training_dataset = tf.data.Dataset.from_generator(generator, output_types=(tf.int32, tf.int32), output_shapes=(images_shape, annotations_shape))
     training_dataset = training_dataset.shuffle(buffer_size=3000)
     #training_dataset = training_dataset.map(
     #    parser, num_parallel_calls=number_of_cpus)
