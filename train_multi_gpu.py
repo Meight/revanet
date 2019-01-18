@@ -25,6 +25,7 @@ from tqdm import tqdm
 
 import tensorflow as tf
 from utils import segmentation, utils
+from utils.data_generation import get_batch_loader_for_subset
 from utils.arguments import ratio
 from utils.dataset import check_dataset_correctness, generate_dataset
 from utils.files import retrieve_dataset_information
@@ -197,7 +198,7 @@ TRAINING_PARAMETERS = {
     'validation_annotations_path': VALIDATION_ANNOTATIONS_PATH
 }
 
-os.environ["CUDA_VISIBLE_DEVICES"] = str(NUMBER_OF_GPUS)
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 if IS_MULTI_LABEL_CLASSIFICATION:
     validation_measures = ['exact_match_ratio', 'hamming_score']
@@ -238,12 +239,12 @@ output_tensor = tf.placeholder(
     tf.float32, shape=[None, None, None, number_of_classes])
 
 model_builder = ModelBuilder(
-        number_of_classes=number_of_classes,
-        input_size=INPUT_SIZE,
-        backbone_name=BACKBONE_NAME,
-        is_training=True)
+    number_of_classes=number_of_classes,
+    input_size=INPUT_SIZE,
+    backbone_name=BACKBONE_NAME,
+    is_training=True)
 predictions_tensor, init_fn = model_builder.build(
-        model_name=MODEL_NAME, inputs=input_tensor)
+    model_name=MODEL_NAME, inputs=input_tensor)
 
 weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
 unc = tf.where(
@@ -330,8 +331,20 @@ if CONTINUE_TRAINING:
 
 average_measures_per_epoch = {'loss': [], 'iou': [], 'scores': []}
 
-training_dataset, number_of_training_steps = generate_dataset(
+train_augmenter, train_batch_loader = get_batch_loader_for_subset(
+    number_of_epochs=NUMBER_OF_EPOCHS,
+    batch_size=BATCH_SIZE,
     subset_associations=subset_associations['train'],
+    class_colors=class_colors)
+
+validation_augmenter, validation_batch_loader = get_batch_loader_for_subset(
+    number_of_epochs=NUMBER_OF_EPOCHS,
+    batch_size=BATCH_SIZE,
+    subset_associations=subset_associations['validation'],
+    class_colors=class_colors)
+
+training_dataset = generate_dataset(
+    train_augmenter,
     input_size=INPUT_SIZE,
     number_of_epochs=NUMBER_OF_EPOCHS,
     batch_size=BATCH_SIZE,
@@ -340,8 +353,8 @@ training_dataset, number_of_training_steps = generate_dataset(
 training_iterator = training_dataset.make_one_shot_iterator()
 next_training_batch = training_iterator.get_next()
 
-validation_dataset, number_of_validation_steps = generate_dataset(
-    subset_associations=subset_associations['train'],
+validation_dataset = generate_dataset(
+    validation_augmenter,
     input_size=INPUT_SIZE,
     number_of_epochs=NUMBER_OF_EPOCHS,
     batch_size=1,
