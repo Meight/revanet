@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #SBATCH --job-name=bisenet-gpu
 #SBATCH --output=/projets/thesepizenberg/deep-learning/logs/gpu-bisenet-%j.out
 #SBATCH --error=/projets/thesepizenberg/deep-learning/logs/gpu-bisenet-%j.out
