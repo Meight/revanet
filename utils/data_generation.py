@@ -27,11 +27,9 @@ class DataGenerator():
 
     def _shuffle_paths(self):
         self.image_paths = np.random.permutation(self.image_paths)
-        print("New images paths:", self.image_paths)
 
     def get_batch(self):
         while self.current_epoch < self.number_of_epochs:
-            print('Step', self.current_step)
 
             images_batch = []
             annotations_batch = []
@@ -100,7 +98,10 @@ augmentation_pipeline = augmenters.Sequential([
         augmenters.Affine(rotate=(-20, 20)),
         augmenters.CropAndPad(percent=(-0.15, 0.15)),
         augmenters.Sharpen((0.0, 1.0)),
-    ])
+    ]),
+    augmenters.CropToFixedSize(384, 384),
+    augmenters.PadToFixedSize(384, 384),
+    augmenters.Multiply(1 / 255.0)
 ],
                                               deterministic=True)
 
