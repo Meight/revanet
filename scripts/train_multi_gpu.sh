@@ -1,25 +1,26 @@
-#!/usr/bin/env bash
-#SBATCH --job-name=training-full-val
-#SBATCH --output=/projets/thesepizenberg/deep-learning/logs/bisenet-%j.out
-#SBATCH --error=/projets/thesepizenberg/deep-learning/logs/bisenet-%j.out
+#SBATCH --job-name=bisenet-gpu
+#SBATCH --output=/projets/thesepizenberg/deep-learning/logs/gpu-bisenet-%j.out
+#SBATCH --error=/projets/thesepizenberg/deep-learning/logs/gpu-bisenet-%j.out
 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=GPUNodes
 #SBATCH --gres=gpu:1
+#SBATCH --gres-flags=enforce-binding
 #SBATCH --mem-per-cpu=9000M
+
 
 set -e
 
 # Various script and dataset paths.
-VENV_PATH="/users/thesepizenberg/mlebouch/venv-tf"
 TRAIN_SCRIPT_DIR="/projets/thesepizenberg/deep-learning/revanet"
+VENV_PATH=$TRAIN_SCRIPT_DIR
 
 # Begin script.
 
 # Create a virtual environment from the Docker container.
 
-srun keras-py3-tf virtualenv --system-site-packages /users/thesepizenberg/mlebouch/venv
+srun keras-py3-tf virtualenv --system-site-packages ${VENV_PATH}
 wait
 
 srun keras-py3-tf ${VENV_PATH}/bin/python "$TRAIN_SCRIPT_DIR/train_multi_gpu.py" \
