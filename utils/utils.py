@@ -1,15 +1,15 @@
-from __future__ import print_function, division
+from __future__ import division, print_function
 
 import glob
 import os
 from collections import OrderedDict
 from pathlib import Path
 
-import cv2
 import numpy as np
-import tensorflow as tf
 from PIL import Image
 
+import cv2
+import tensorflow as tf
 from utils.augmentation import resize_to_size
 
 
@@ -121,6 +121,9 @@ def prepare_data(train_path: Path,
     associations = {}
 
     for split_name, split_data in paths_associations.items():
+        if split_data['images_path'] is None or split_data['annotations_path'] is None:
+            continue
+
         # Got to use an ordered dictionary to ensure reproducibility, as order isn't guaranteed otherwise and we'll be
         # picking samples randomly in this set.
         associations[split_name] = OrderedDict()
