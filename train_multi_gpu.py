@@ -391,8 +391,9 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 samples_seen += BATCH_SIZE
 
                 print(
-                    '[{} - {} #{}/{}] Seen samples: {}, current loss: {}, time spent on batch: {:0.2f}'
+                    '[{} - {} #{}/{}] (GPU:{}) Seen samples: {}, current loss: {}, time spent on batch: {:0.2f}'
                     .format(MODEL_NAME, BACKBONE_NAME, epoch, NUMBER_OF_EPOCHS,
+                            k,
                             samples_seen, current,
                             time.time() - start_time))
                 start_time = time.time()
