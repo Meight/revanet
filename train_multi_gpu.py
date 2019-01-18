@@ -363,6 +363,9 @@ validation_dataset = generate_dataset(
 validation_iterator = validation_dataset.make_one_shot_iterator()
 next_validation_batch = validation_iterator.get_next()
 
+number_of_training_steps = 10582
+number_of_validation_steps = 1449
+
 for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     current_losses = []
     samples_seen = 0
