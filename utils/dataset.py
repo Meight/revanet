@@ -80,26 +80,42 @@ def check_dataset_correctness(dataset_name,
             .format(validation_annotations_path, dataset_name))
 
 
-def generate_dataset(subset_associations, input_size, number_of_epochs,
-                     batch_size, number_of_cpus=4, number_of_gpus=1, ratio=1):
-    number_of_samples = len(subset_associations.keys())
-    number_of_used_samples = int(ratio * number_of_samples)
-    associations = random.sample(subset_associations.items(),
-                                 max(1, number_of_used_samples))
-    number_of_steps = number_of_used_samples // (batch_size * number_of_gpus)
+class AugmenterProxy:
+    """
+    This proxy must be because the augmenter's interface is kind of tricky
+    and uselessly (in our case) complex. It simply proxies the generation
+    to call the right methods based on that interface.
 
+    This thing was terribly documented is a bit of a work around.
+    """
+    def __init__(self, background_augmenter):
+        self.background_augmenter = background_augmenter
+
+    def __call__(self):
+        while True:
+            batch = self.background_augmenter.get_batch()
+
+            if batch is None:
+                break
+
+            # Augmented images here are not yet normalized!
+            yield batch.images_aug[0], batch.segmentation_maps_aug[0].draw()
+
+
+def generate_dataset(background_augmenter, input_size, number_of_epochs,
+                     batch_size, number_of_cpus=4, number_of_gpus=1, ratio=1):
+    generator = AugmenterProxy(background_augmenter)
     parser = ExampleParser(input_size=input_size)
 
-    training_dataset = tf.data.Dataset.from_tensor_slices(
-        list(map(load_example, associations)))
+    training_dataset = tf.data.Dataset.from_generator(generator, output_types=(tf.int32, tf.int32))
     training_dataset = training_dataset.shuffle(buffer_size=3000)
-    training_dataset = training_dataset.map(
-        parser, num_parallel_calls=number_of_cpus)
+    #training_dataset = training_dataset.map(
+    #    parser, num_parallel_calls=number_of_cpus)
     training_dataset = training_dataset.batch(batch_size)
     training_dataset = training_dataset.repeat(number_of_epochs)
     training_dataset = training_dataset.prefetch(number_of_gpus)
 
-    return training_dataset, number_of_steps
+    return training_dataset
 
 
 def serialize_example(image_path, annotation_path):
