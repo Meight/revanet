@@ -1,11 +1,13 @@
 """
 Set of utility functions to ensure the correctness of a dataset.
 """
+
 import random
 from pathlib import Path
-import tensorflow as tf
+
 import numpy as np
 
+import tensorflow as tf
 from utils import utils
 
 
@@ -47,27 +49,39 @@ def check_dataset_correctness(dataset_name,
     :param validation_path: The name of the folder containing the validation samples.
     """
     if not dataset_path.exists():
-        raise DatasetDoesNotExistError('No directory was found at {} for dataset {}.'.format(dataset_path,
-                                                                                             dataset_name))
+        raise DatasetDoesNotExistError(
+            'No directory was found at {} for dataset {}.'
+            .format(dataset_path,
+                    dataset_name))
 
     if not train_path.exists():
-        raise DatasetSubsetDoesNotExistError('Train folder not found at {} for dataset {}.'.format(train_path,
-                                                                                                   dataset_name))
+        raise DatasetSubsetDoesNotExistError(
+            'Train folder not found at {} for dataset {}.'
+            .format(train_path,
+                    dataset_name))
 
     if not train_annotations_path.exists():
-        raise DatasetSubsetDoesNotExistError('No annotations folder found for train subset at {} for dataset {}.'
-                                             .format(train_annotations_path, dataset_name))
+        raise DatasetSubsetDoesNotExistError(
+            '''No annotations folder found for train
+            subset at {} for dataset {}.'''
+            .format(train_annotations_path, dataset_name))
 
     if not validation_path.exists():
-        raise DatasetSubsetDoesNotExistError('Validation folder not found at {} for dataset {}.'.format(validation_path,
-                                                                                                        dataset_name))
+        raise DatasetSubsetDoesNotExistError(
+            '''Validation folder not found
+            at {} for dataset {}.'''
+            .format(validation_path,
+                    dataset_name))
 
     if not validation_annotations_path.exists():
-        raise DatasetSubsetDoesNotExistError('No annotations folder found for validation subset at {} for dataset {}.'
-                                             .format(validation_annotations_path, dataset_name))
+        raise DatasetSubsetDoesNotExistError(
+            '''No annotations folder found for
+            validation subset at {} for dataset {}.'''
+            .format(validation_annotations_path, dataset_name))
 
 
-def generate_dataset(subset_associations, input_size, number_of_epochs, batch_size, number_of_cpus=4, number_of_gpus=1, ratio=1):
+def generate_dataset(subset_associations, input_size, number_of_epochs,
+                     batch_size, number_of_cpus=4, number_of_gpus=1, ratio=1):
     number_of_samples = len(subset_associations.keys())
     number_of_used_samples = int(ratio * number_of_samples)
     associations = random.sample(subset_associations.items(),
@@ -76,10 +90,11 @@ def generate_dataset(subset_associations, input_size, number_of_epochs, batch_si
 
     parser = ExampleParser(input_size=input_size)
 
-
-    training_dataset = tf.data.Dataset.from_tensor_slices(list(map(load_example, associations)))
+    training_dataset = tf.data.Dataset.from_tensor_slices(
+        list(map(load_example, associations)))
     training_dataset = training_dataset.shuffle(buffer_size=3000)
-    training_dataset = training_dataset.map(parser, num_parallel_calls=number_of_cpus)
+    training_dataset = training_dataset.map(
+        parser, num_parallel_calls=number_of_cpus)
     training_dataset = training_dataset.batch(batch_size)
     training_dataset = training_dataset.repeat(number_of_epochs)
     training_dataset = training_dataset.prefetch(number_of_gpus)
@@ -141,15 +156,18 @@ class ExampleParser:
 
         annotation_shifted_classes = tf.cast(example_annotation, tf.int32) + 1
 
-        cropped_padded_img = tf.image.resize_image_with_pad(example_image, self.input_size, self.input_size)
-        cropped_padded_annotation = tf.image.resize_image_with_pad(annotation_shifted_classes, self.input_size, self.input_size)
+        cropped_padded_img = tf.image.resize_image_with_pad(
+            example_image, self.input_size, self.input_size)
+        cropped_padded_annotation = tf.image.resize_image_with_pad(
+            annotation_shifted_classes, self.input_size, self.input_size)
 
-        annotation_additional_mask_out = tf.to_int32(tf.equal(cropped_padded_annotation, 0)) * (255 + 1)
+        annotation_additional_mask_out = tf.to_int32(
+            tf.equal(cropped_padded_annotation, 0)) * (255 + 1)
 
-        cropped_padded_annotation = tf.cast(cropped_padded_annotation, tf.int32) + annotation_additional_mask_out - 1
+        cropped_padded_annotation = tf.cast(
+            cropped_padded_annotation, tf.int32) + annotation_additional_mask_out - 1
         example_image = tf.cast(cropped_padded_img, tf.float32) / 255.0
         # example_annotation = tf.cast(segmentation.image_to_one_hot(annotation=example_annotation,
         #                                                           class_colors=class_colors), tf.float32)
 
         return example_image, cropped_padded_annotation
-
