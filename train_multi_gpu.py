@@ -424,7 +424,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
                     output_image = session.run(
                         predictions_tensor,
-                        feed_dict={input_tensor: input_image})
+                        feed_dict={input_tensor: images_batch})
 
                     output_image = np.array(output_image[0, :, :, :])
                     output_image = output_image[valid_indices, :]
