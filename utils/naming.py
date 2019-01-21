@@ -8,7 +8,8 @@ accumulate quite quickly.
 import os
 from pathlib import Path
 
-from colorama import init as colorama_init, Fore, Back, Style
+from colorama import Back, Fore, Style
+from colorama import init as colorama_init
 
 
 class FilesFormatterFactory:
@@ -213,7 +214,7 @@ class LogsFormatter(FilesFormatterFactory):
         if isinstance(value, bool):
             return self._pretty_print_boolean(value)
         else:
-            return Fore.CYAN + '{}'.format(value)
+            return Fore.YELLOW + '{}'.format(value)
 
     @staticmethod
     def _pretty_print_boolean(value):

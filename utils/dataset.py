@@ -110,10 +110,10 @@ def generate_dataset(background_augmenter, input_size, number_of_epochs,
     parser = ExampleParser(input_size=input_size)
 
     images_shape = (input_size, input_size, 3)
-    annotations_shape = (input_size, input_size, 21)
+    annotations_shape = (input_size, input_size, len(class_colors))
 
-    training_dataset = tf.data.Dataset.from_generator(generator, output_types=(tf.int32, tf.int32), output_shapes=(images_shape, annotations_shape))
-    training_dataset = training_dataset.shuffle(buffer_size=3000)
+    training_dataset = tf.data.Dataset.from_generator(generator, output_types=(tf.float32, tf.int32), output_shapes=(images_shape, annotations_shape))
+    training_dataset = training_dataset.shuffle(buffer_size=300)
     #training_dataset = training_dataset.map(
     #    parser, num_parallel_calls=number_of_cpus)
     training_dataset = training_dataset.batch(batch_size)

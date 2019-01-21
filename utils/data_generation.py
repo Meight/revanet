@@ -76,45 +76,44 @@ class DataGenerator():
             self.steps_per_epoch)
 
 
-augmentation_pipeline = augmenters.Sequential([
-    augmenters.OneOf([
-        augmenters.Fog(deterministic=True),
-        augmenters.Snowflakes(deterministic=True),
-        augmenters.FastSnowyLandscape(deterministic=True),
-        augmenters.GaussianBlur(sigma=(0.0, 2.0), deterministic=True),
-        augmenters.Add((-20, 20), per_channel=0.5, deterministic=True),
-        augmenters.CoarseDropout(
-            0.02, size_percent=0.05, per_channel=0.5, deterministic=True),
-        augmenters.AdditiveGaussianNoise(scale=0.1 * 255, deterministic=True),
-        augmenters.AddElementwise(
-            (-10, 10), per_channel=0.5, deterministic=True),
-        augmenters.Emboss(
-            alpha=(0.0, 0.5), strength=(0.5, 1.5), deterministic=True)
-    ]),
-    augmenters.SomeOf(3, [
-        augmenters.Grayscale(alpha=(0.0, 1.0)),
-        augmenters.ContrastNormalization((0.5, 1.5)),
-        augmenters.Affine(scale=(0.5, 1.5)),
-        augmenters.Affine(rotate=(-20, 20)),
-        augmenters.CropAndPad(percent=(-0.15, 0.15)),
-        augmenters.Sharpen((0.0, 1.0)),
-    ]),
-    augmenters.CropToFixedSize(384, 384),
-    augmenters.PadToFixedSize(384, 384),
-    augmenters.Multiply(1 / 255.0)
-],
-                                              deterministic=True)
-
-
-def get_batch_loader_for_subset(number_of_epochs, batch_size,
+def get_batch_loader_for_subset(number_of_epochs, batch_size, input_size,
                                 subset_associations, class_colors):
+    augmentation_pipeline = augmenters.Sequential([
+        augmenters.OneOf([
+            augmenters.Fog(deterministic=True),
+            augmenters.Snowflakes(deterministic=True),
+            augmenters.FastSnowyLandscape(deterministic=True),
+            augmenters.GaussianBlur(sigma=(0.0, 2.0), deterministic=True),
+            augmenters.Add((-20, 20), per_channel=0.5, deterministic=True),
+            augmenters.CoarseDropout(
+                0.02, size_percent=0.05, per_channel=0.5, deterministic=True),
+            augmenters.AdditiveGaussianNoise(
+                scale=0.1 * 255, deterministic=True),
+            augmenters.AddElementwise(
+                (-10, 10), per_channel=0.5, deterministic=True),
+            augmenters.Emboss(
+                alpha=(0.0, 0.5), strength=(0.5, 1.5), deterministic=True)
+        ]),
+        augmenters.SomeOf(3, [
+            augmenters.Grayscale(alpha=(0.0, 1.0)),
+            augmenters.ContrastNormalization((0.5, 1.5)),
+            augmenters.Affine(scale=(0.5, 1.5)),
+            augmenters.Affine(rotate=(-20, 20)),
+augmenters.CropAndPad(percent=(-0.15, 0.15)),
+            augmenters.Sharpen((0.0, 1.0)),
+        ]),
+        augmenters.CropToFixedSize(input_size, input_size),
+        augmenters.PadToFixedSize(input_size, input_size),
+        augmenters.Multiply(1 / 255.0)
+    ], deterministic=True)
+
     data_generator = DataGenerator(number_of_epochs, batch_size,
                                    subset_associations, class_colors)
     batch_loader = ia.BatchLoader(data_generator.get_batch)
     bg_augmenter = ia.BackgroundAugmenter(batch_loader, augmentation_pipeline)
 
     # Both get returned because they must be terminated manually.
-    return bg_augmenter, batch_loader
+    return bg_augmenter, batch_loader, data_generator.steps_per_epoch
 
 
 if __name__ == "__main__":
