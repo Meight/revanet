@@ -9,6 +9,7 @@ import imgaug.augmenters as augmenters
 from utils.files import retrieve_dataset_information
 from utils.segmentation import image_to_one_hot, one_hot_to_image
 from utils.utils import load_image, prepare_data
+from utils.augmentation import resize_to_size
 
 
 class DataGenerator():
@@ -39,11 +40,13 @@ class DataGenerator():
                                 batch_index) % self.number_of_samples
                 sample_path = self.image_paths[sample_index]
                 image = load_image(sample_path)
-                images_batch.append(image)
 
                 annotation_path = random.choice(
                     self.subset_associations[sample_path])
                 annotation = load_image(annotation_path)
+
+                image, annotation = resize_to_size(image, annotation, 324)
+
                 annotation = one_hot_to_image(
                     image_to_one_hot(annotation, self.class_colors))
 
@@ -51,6 +54,9 @@ class DataGenerator():
                     annotation,
                     shape=image.shape,
                     nb_classes=self.number_of_classes)
+
+
+                images_batch.append(image)
                 annotations_batch.append(annotation)
 
             batch = ia.Batch(
