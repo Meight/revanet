@@ -341,12 +341,12 @@ def parallel_training(dataset, training_steps_per_epoch):
     do_training(training_steps_per_epoch, update_op, loss, score, update_metric, init_fn)
 
 
-#def do_validation(session, model_fn, dataset):
-#    predictions_batch = 
+def do_validation(session, model_fn, dataset):
+    predictions_batch = session.run(model_fn()) 
 
 
 def do_training(training_steps_per_epoch, update_op, loss, score, update_metric, init_fn=None):
-    config = tf.ConfigProto()
+    config = tf.ConfigProto(allow_soft_placement=True)
     config.gpu_options.allow_growth = True
     with tf.Session(config=config) as session:
         session.run(tf.global_variables_initializer())
