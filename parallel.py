@@ -200,7 +200,6 @@ def create_parallel_optimization(model_fn,
                                  optimizer,
                                  controller="/cpu:0"):
     devices = get_available_gpus()
-    devices = ['/cpu:0']
     # Store the gradients per tower.
     tower_grads = []
 
@@ -340,6 +339,10 @@ def parallel_training(dataset, training_steps_per_epoch):
                                                    output_batch, optimizer)
 
     do_training(training_steps_per_epoch, update_op, loss, score, update_metric, init_fn)
+
+
+#def do_validation(session, model_fn, dataset):
+#    predictions_batch = 
 
 
 def do_training(training_steps_per_epoch, update_op, loss, score, update_metric, init_fn=None):
