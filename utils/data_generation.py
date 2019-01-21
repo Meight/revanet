@@ -21,6 +21,8 @@ class DataGenerator():
         self.current_step = 0
         self.number_of_samples = len(subset_associations.keys())
         self.steps_per_epoch = self.number_of_samples // batch_size
+        print('There are {} samples, so {} steps per epoch with batch size {}.'
+              .format(self.number_of_samples, self.steps_per_epoch, self.batch_size))
         self.image_paths = list(subset_associations.keys())
         self.subset_associations = subset_associations
         self.class_colors = class_colors
