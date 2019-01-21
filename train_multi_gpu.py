@@ -303,6 +303,7 @@ number_of_used_training_samples = int(
 training_indices = random.sample(
     range(number_of_training_samples), max(1, number_of_used_training_samples))
 subset_associations['train'] = {train_image_paths[index]: train_annotation_paths[index] for index in training_indices}
+number_of_used_training_samples = len(list(subset_associations['train'].keys()))
 number_of_validation_samples = len(validation_image_paths)
 number_of_used_validation_samples = int(
     VALIDATION_RATIO * number_of_validation_samples)
@@ -310,6 +311,7 @@ validation_indices = random.sample(
     range(number_of_validation_samples),
     max(1, number_of_used_validation_samples))
 subset_associations['validation'] = {validation_image_paths[index]: validation_annotation_paths[index] for index in validation_indices}
+number_of_used_validation_samples = len(list(subset_associations['validation'].keys()))
 
 ADDITIONAL_INFO = {
     'results_directory': RESULTS_DIRECTORY,
@@ -321,9 +323,9 @@ ADDITIONAL_INFO = {
     'is_multi_label_classification': IS_MULTI_LABEL_CLASSIFICATION,
     'validation_threshold': VALIDATION_THRESHOLD,
     'training_samples': number_of_training_samples,
-    'used_training_samples': len(list(subset_associations['train'].keys())),
+    'used_training_samples': number_of_used_training_samples,
     'validation_samples': number_of_validation_samples,
-    'used_validation_samples': len(list(subset_associations['validation'].keys())),
+    'used_validation_samples': number_of_used_validation_samples,
     'validation_measures': validation_measures
 }
 
@@ -415,8 +417,6 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 with tf.device('/gpu:{}'.format(k)):
                     images_batch, annotations_batch = session.run(
                         next_validation_batch)
-                    input_image = images_batch[0]
-                    annotation = annotations_batch[0]
 
                     valid_indices = np.where(np.sum(annotation, axis=-1) != 0)
                     annotation = annotation[valid_indices, :]
