@@ -198,7 +198,7 @@ TRAINING_PARAMETERS = {
     'validation_annotations_path': VALIDATION_ANNOTATIONS_PATH
 }
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+# os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 if IS_MULTI_LABEL_CLASSIFICATION:
     validation_measures = ['exact_match_ratio', 'hamming_score']
