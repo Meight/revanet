@@ -382,7 +382,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     start_time = time.time()
     epoch_start_time = time.time()
 
-    for current_step_index in range(number_of_training_steps):
+    for current_step_index in range(number_of_training_steps // NUMBER_OF_GPUS):
         for k in range(NUMBER_OF_GPUS):
             with tf.device('/gpu:{}'.format(k)):
                 images_batch, annotations_batch = session.run(
@@ -418,6 +418,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                     images_batch, annotations_batch = session.run(
                         next_validation_batch)
 
+                    annotation = annotations_batch[0]
                     valid_indices = np.where(np.sum(annotation, axis=-1) != 0)
                     annotation = annotation[valid_indices, :]
 
