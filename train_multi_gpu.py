@@ -25,8 +25,8 @@ from tqdm import tqdm
 
 import tensorflow as tf
 from utils import segmentation, utils
-from utils.data_generation import get_batch_loader_for_subset
 from utils.arguments import ratio
+from utils.data_generation import get_batch_loader_for_subset
 from utils.dataset import check_dataset_correctness, generate_dataset
 from utils.files import retrieve_dataset_information
 from utils.models import ModelBuilder
@@ -331,15 +331,17 @@ if CONTINUE_TRAINING:
 
 average_measures_per_epoch = {'loss': [], 'iou': [], 'scores': []}
 
-train_augmenter, train_batch_loader = get_batch_loader_for_subset(
+train_augmenter, train_batch_loader, number_of_training_steps = get_batch_loader_for_subset(
     number_of_epochs=NUMBER_OF_EPOCHS,
     batch_size=BATCH_SIZE,
+    input_size=INPUT_SIZE,
     subset_associations=subset_associations['train'],
     class_colors=class_colors)
 
-validation_augmenter, validation_batch_loader = get_batch_loader_for_subset(
+validation_augmenter, validation_batch_loader, number_of_validation_steps = get_batch_loader_for_subset(
     number_of_epochs=NUMBER_OF_EPOCHS,
     batch_size=BATCH_SIZE,
+    input_size=INPUT_SIZE,
     subset_associations=subset_associations['validation'],
     class_colors=class_colors)
 
@@ -349,7 +351,8 @@ training_dataset = generate_dataset(
     number_of_epochs=NUMBER_OF_EPOCHS,
     batch_size=BATCH_SIZE,
     number_of_cpus=NUMBER_OF_CPUS,
-    number_of_gpus=NUMBER_OF_GPUS)
+    number_of_gpus=NUMBER_OF_GPUS,
+    class_colors=class_colors)
 training_iterator = training_dataset.make_one_shot_iterator()
 next_training_batch = training_iterator.get_next()
 
@@ -359,12 +362,10 @@ validation_dataset = generate_dataset(
     number_of_epochs=NUMBER_OF_EPOCHS,
     batch_size=1,
     number_of_cpus=NUMBER_OF_CPUS,
-    number_of_gpus=NUMBER_OF_GPUS)
+    number_of_gpus=NUMBER_OF_GPUS,
+    class_colors=class_colors)
 validation_iterator = validation_dataset.make_one_shot_iterator()
 next_validation_batch = validation_iterator.get_next()
-
-number_of_training_steps = 10582
-number_of_validation_steps = 1449
 
 for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     current_losses = []
@@ -393,8 +394,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 print(
                     '[{} - {} #{}/{}] (GPU:{}) Seen samples: {}, current loss: {}, time spent on batch: {:0.2f}'
                     .format(MODEL_NAME, BACKBONE_NAME, epoch, NUMBER_OF_EPOCHS,
-                            k,
-                            samples_seen, current,
+                            k, samples_seen, current,
                             time.time() - start_time))
                 start_time = time.time()
 
