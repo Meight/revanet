@@ -412,7 +412,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     if epoch % VALIDATE_EVERY == 0:
         segmentation_evaluator.initialize_history()
 
-        for validation_step in tqdm(range(number_of_validation_steps)):
+        for validation_step in tqdm(range(number_of_validation_steps // NUMBER_OF_GPUS)):
             for k in range(NUMBER_OF_GPUS):
                 with tf.device('/gpu:{}'.format(k)):
                     images_batch, annotations_batch = session.run(
