@@ -418,7 +418,7 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                     images_batch, annotations_batch = session.run(
                         next_validation_batch)
 
-                    annotation = annotations_batch[0]
+                    annotation = annotations_batch[0, :, :, :]
                     valid_indices = np.where(np.sum(annotation, axis=-1) != 0)
                     annotation = annotation[valid_indices, :]
 
