@@ -292,7 +292,9 @@ else:
     validation_output_names = list(paths['val'].values())
 
 train_image_paths = list(subset_associations['train'].keys())
+train_annotation_paths = list(subset_associations['train'].values())
 validation_image_paths = list(subset_associations['validation'].keys())
+validation_annotation_paths = list(subset_associations['validation'].values())
 
 random.seed(RANDOM_SEED)
 number_of_training_samples = len(train_image_paths)
@@ -300,12 +302,14 @@ number_of_used_training_samples = int(
     TRAINING_RATIO * number_of_training_samples)
 training_indices = random.sample(
     range(number_of_training_samples), max(1, number_of_used_training_samples))
+subset_associations['train'] = {train_image_paths[index]: train_annotation_paths[index] for index in training_indices}
 number_of_validation_samples = len(validation_image_paths)
 number_of_used_validation_samples = int(
     VALIDATION_RATIO * number_of_validation_samples)
 validation_indices = random.sample(
     range(number_of_validation_samples),
     max(1, number_of_used_validation_samples))
+subset_associations['validation'] = {validation_image_paths[index]: validation_annotation_paths[index] for index in validation_indices}
 
 ADDITIONAL_INFO = {
     'results_directory': RESULTS_DIRECTORY,
@@ -316,10 +320,10 @@ ADDITIONAL_INFO = {
     'random_seed': RANDOM_SEED,
     'is_multi_label_classification': IS_MULTI_LABEL_CLASSIFICATION,
     'validation_threshold': VALIDATION_THRESHOLD,
-    'training_samples': len(train_image_paths),
-    'used_training_samples': number_of_training_samples,
+    'training_samples': number_of_training_samples,
+    'used_training_samples': len(list(subset_associations['train'].keys())),
     'validation_samples': number_of_validation_samples,
-    'used_validation_samples': number_of_used_validation_samples,
+    'used_validation_samples': len(list(subset_associations['validation'].keys())),
     'validation_measures': validation_measures
 }
 
