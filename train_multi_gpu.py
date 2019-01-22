@@ -19,6 +19,7 @@ import random
 import time
 from pathlib import Path
 from pprint import pprint
+import matplotlib.pyplot as plt
 
 import numpy as np
 from tqdm import tqdm
