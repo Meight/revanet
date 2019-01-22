@@ -421,8 +421,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     if epoch % VALIDATE_EVERY == 0:
         segmentation_evaluator.initialize_history()
 
-        for validation_step in tqdm(
-                range(number_of_validation_steps // NUMBER_OF_GPUS)):
+        for validation_step in range(
+                number_of_validation_steps // NUMBER_OF_GPUS):
             for k in range(NUMBER_OF_GPUS):
                 with tf.device('/gpu:{}'.format(k)):
                     images_batch, annotations_batch = session.run(
@@ -445,6 +445,15 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                         prediction=output_image,
                         annotation=annotation,
                         valid_indices=valid_indices)
+
+                    if epoch % 5 == 0:
+                        plt.figure()
+                        plt.subplot(1, 2, 1)
+                        plt.imshow(annotation)
+                        plt.subplot(1, 2, 2)
+                        plt.imshow(output_image)
+                        plt.title(segmentation_evaluator.get_averaged_measures(current_epoch=epoch)['iou'])
+                        plt.imsave(Path(RESULTS_DIRECTORY, '{}-{}.png'.format(epoch, validation_step)))
 
         summary_formatter.update(
             current_epoch=epoch,
