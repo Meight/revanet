@@ -15,10 +15,10 @@ and then averages the result to update the model's weights.
 from __future__ import print_function
 
 import argparse
-import os
 import random
 import time
 from pathlib import Path
+from pprint import pprint
 
 import numpy as np
 from tqdm import tqdm
@@ -101,7 +101,7 @@ parser.add_argument(
 parser.add_argument(
     '--model-name',
     type=str,
-    default="FC-DenseNet56",
+    default="BiSeNet",
     help='''The model you are using. See model_builder.py for
                     supported models''')
 parser.add_argument(
@@ -113,7 +113,7 @@ parser.add_argument(
 parser.add_argument(
     '--results-directory',
     type=str,
-    default='/projets/thesepizenberg/deep-learning/revanet/',
+    default='./',
     help='''Path to the directory where the results are to
                     be stored.''')
 parser.add_argument(
@@ -302,16 +302,24 @@ number_of_used_training_samples = int(
     TRAINING_RATIO * number_of_training_samples)
 training_indices = random.sample(
     range(number_of_training_samples), max(1, number_of_used_training_samples))
-subset_associations['train'] = {train_image_paths[index]: train_annotation_paths[index] for index in training_indices}
-number_of_used_training_samples = len(list(subset_associations['train'].keys()))
+subset_associations['train'] = {
+    train_image_paths[index]: train_annotation_paths[index]
+    for index in training_indices
+}
+number_of_used_training_samples = len(
+    list(subset_associations['train'].keys()))
 number_of_validation_samples = len(validation_image_paths)
 number_of_used_validation_samples = int(
     VALIDATION_RATIO * number_of_validation_samples)
 validation_indices = random.sample(
     range(number_of_validation_samples),
     max(1, number_of_used_validation_samples))
-subset_associations['validation'] = {validation_image_paths[index]: validation_annotation_paths[index] for index in validation_indices}
-number_of_used_validation_samples = len(list(subset_associations['validation'].keys()))
+subset_associations['validation'] = {
+    validation_image_paths[index]: validation_annotation_paths[index]
+    for index in validation_indices
+}
+number_of_used_validation_samples = len(
+    list(subset_associations['validation'].keys()))
 
 ADDITIONAL_INFO = {
     'results_directory': RESULTS_DIRECTORY,
@@ -382,7 +390,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     start_time = time.time()
     epoch_start_time = time.time()
 
-    for current_step_index in range(number_of_training_steps // NUMBER_OF_GPUS):
+    for current_step_index in range(
+            number_of_training_steps // NUMBER_OF_GPUS):
         for k in range(NUMBER_OF_GPUS):
             with tf.device('/gpu:{}'.format(k)):
                 images_batch, annotations_batch = session.run(
@@ -412,7 +421,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     if epoch % VALIDATE_EVERY == 0:
         segmentation_evaluator.initialize_history()
 
-        for validation_step in tqdm(range(number_of_validation_steps // NUMBER_OF_GPUS)):
+        for validation_step in tqdm(
+                range(number_of_validation_steps // NUMBER_OF_GPUS)):
             for k in range(NUMBER_OF_GPUS):
                 with tf.device('/gpu:{}'.format(k)):
                     images_batch, annotations_batch = session.run(
@@ -420,23 +430,29 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
                     annotation = annotations_batch[0, :, :, :]
                     valid_indices = np.where(np.sum(annotation, axis=-1) != 0)
-                    annotation = annotation[valid_indices, :]
+
+                    test = np.where(np.sum(annotation, axis=-1) == 0)
+                    annotation = segmentation.one_hot_to_image(annotation)
 
                     output_image = session.run(
                         predictions_tensor,
                         feed_dict={input_tensor: images_batch})
 
                     output_image = np.array(output_image[0, :, :, :])
-                    output_image = output_image[valid_indices, :]
                     output_image = segmentation.one_hot_to_image(output_image)
 
                     segmentation_evaluator.evaluate(
-                        prediction=output_image, annotation=annotation)
+                        prediction=output_image,
+                        annotation=annotation,
+                        valid_indices=valid_indices)
 
         summary_formatter.update(
             current_epoch=epoch,
             measures_dictionary=segmentation_evaluator.get_averaged_measures(
                 current_epoch=epoch))
+
+        pprint(
+            segmentation_evaluator.get_averaged_measures(current_epoch=epoch))
 
         epoch_time = time.time() - epoch_start_time
         remain_time = epoch_time * (NUMBER_OF_EPOCHS - 1 - epoch)
