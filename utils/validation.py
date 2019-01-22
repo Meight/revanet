@@ -1,9 +1,10 @@
 from collections import OrderedDict
 from pprint import pprint
-from sklearn.metrics import jaccard_similarity_score
 
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 import numpy as np
+from sklearn.metrics import (accuracy_score, f1_score,
+                             jaccard_similarity_score, precision_score,
+                             recall_score)
 
 
 class SegmentationEvaluator:
@@ -37,7 +38,7 @@ class SegmentationEvaluator:
         for measure_name in self.active_measures:
             self.measures_history[measure_name] = []
 
-    def evaluate(self, prediction, annotation):
+    def evaluate(self, prediction, annotation, valid_indices=None):
         """
         Evaluates the activated measures onto the provided prediction and annotation. The computed measures
         are then stored within the internal evaluator's history and accessible at any time until the history
@@ -46,8 +47,9 @@ class SegmentationEvaluator:
         :param prediction: The predicted image.
         :param annotation: The annotation image.
         """
-        prediction = prediction.flatten()
-        annotation = annotation.flatten()
+
+        prediction = prediction[valid_indices].flatten()
+        annotation = annotation[valid_indices].flatten()
 
         for measure_name in self.active_measures:
             measure_function = self._get_available_measures_with_functions(
@@ -93,17 +95,17 @@ class SegmentationEvaluator:
     @staticmethod
     def compute_precision(prediction, annotation):
         return precision_score(
-            y_true=annotation, y_pred=prediction, average='weighted')
+            y_true=annotation, y_pred=prediction, average='weighted', labels=np.unique(annotation))
 
     @staticmethod
     def compute_recall(prediction, annotation):
         return recall_score(
-            y_true=annotation, y_pred=prediction, average='weighted')
+            y_true=annotation, y_pred=prediction, average='weighted', labels=np.unique(annotation))
 
     @staticmethod
     def compute_f1(prediction, annotation):
         return f1_score(
-            y_true=annotation, y_pred=prediction, average='weighted')
+            y_true=annotation, y_pred=prediction, average='weighted', labels=np.unique(annotation))
 
     @staticmethod
     def compute_accuracy(prediction, annotation):
@@ -137,7 +139,7 @@ class SegmentationEvaluator:
 
     @staticmethod
     def compute_mean_iou(prediction, annotation):
-        jaccard_similarity_score(annotation.flatten(), prediction.flatten())
+        return jaccard_similarity_score(annotation, prediction)
 
     @staticmethod
     def compute_exact_match_ratio(prediction, annotation):
