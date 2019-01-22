@@ -2,21 +2,23 @@ import random
 from pathlib import Path
 
 import imageio
+import matplotlib.pyplot as plt
 import numpy as np
 
 import imgaug as ia
 import imgaug.augmenters as augmenters
+from utils.augmentation import resize_to_size
 from utils.files import retrieve_dataset_information
 from utils.segmentation import image_to_one_hot, one_hot_to_image
 from utils.utils import load_image, prepare_data
-from utils.augmentation import resize_to_size
 
 
 class DataGenerator():
     def __init__(self, number_of_epochs, batch_size, subset_associations,
-                 class_colors):
+                 class_colors, input_size):
         self.number_of_epochs = number_of_epochs
         self.batch_size = batch_size
+        self.input_size = input_size
         self.current_epoch = 0
         self.current_step = 0
         self.number_of_samples = len(subset_associations.keys())
@@ -47,11 +49,11 @@ class DataGenerator():
                     self.subset_associations[sample_path])
                 annotation = load_image(annotation_path)
 
-                image, annotation = resize_to_size(image, annotation, 324)
-
+                image, annotation = resize_to_size(image, annotation, self.input_size)
+                
                 annotation = one_hot_to_image(
                     image_to_one_hot(annotation, self.class_colors))
-
+ 
                 annotation = ia.SegmentationMapOnImage(
                     annotation,
                     shape=image.shape,
@@ -109,14 +111,11 @@ def get_batch_loader_for_subset(number_of_epochs, batch_size, input_size,
             augmenters.Affine(rotate=(-20, 20)),
 augmenters.CropAndPad(percent=(-0.15, 0.15)),
             augmenters.Sharpen((0.0, 1.0)),
-        ]),
-        augmenters.CropToFixedSize(input_size, input_size),
-        augmenters.PadToFixedSize(input_size, input_size),
-        augmenters.Multiply(1 / 255.0)
+        ])
     ], deterministic=True)
 
     data_generator = DataGenerator(number_of_epochs, batch_size,
-                                   subset_associations, class_colors)
+                                   subset_associations, class_colors, input_size)
     batch_loader = ia.BatchLoader(data_generator.get_batch)
     bg_augmenter = ia.BackgroundAugmenter(batch_loader, augmentation_pipeline)
 
