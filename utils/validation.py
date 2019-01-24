@@ -139,7 +139,26 @@ class SegmentationEvaluator:
 
     @staticmethod
     def compute_mean_iou(prediction, annotation):
-        return jaccard_similarity_score(annotation, prediction)
+        unique_labels, counts = np.unique(annotation, return_counts=True)
+        num_unique_labels = len(unique_labels)
+
+        I = np.zeros(num_unique_labels)
+        U = np.zeros(num_unique_labels)
+        # weights = np.ones(num_unique_labels)
+
+        for index, val in enumerate(unique_labels):
+            pred_i = prediction == val
+            label_i = annotation == val
+
+            I[index] = float(np.sum(np.logical_and(label_i, pred_i)))
+            U[index] = float(np.sum(np.logical_or(label_i, pred_i)))
+            # weights[index] = 1 / counts[index]
+
+        mean_iou = np.mean(I / U)
+
+        return mean_iou
+
+        # return jaccard_similarity_score(annotation, prediction, sample_weight=weights)
 
     @staticmethod
     def compute_exact_match_ratio(prediction, annotation):
