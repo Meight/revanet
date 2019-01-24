@@ -19,8 +19,8 @@ import random
 import time
 from pathlib import Path
 from pprint import pprint
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
@@ -34,6 +34,8 @@ from utils.models import ModelBuilder
 from utils.naming import FilesFormatterFactory
 from utils.utils import gather_multi_label_data, prepare_data
 from utils.validation import SegmentationEvaluator
+
+slim = tf.contrib.slim
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--number-of-cpus', required=True, type=int)
@@ -141,6 +143,13 @@ parser.add_argument(
     default='validation_annotations',
     help='''Name of the folder containing the annotations
                     corresponding to the validation samples.''')
+parser.add_argument(
+    '--ignore-class-name',
+    type=str,
+    default='ambiguous',
+    help='''Name of the class that's representing
+                    the parts of an image that should be ignored
+                    during evaluation and training.''')
 args = parser.parse_args()
 
 IS_MULTI_LABEL_CLASSIFICATION = bool(args.is_multi_label_segmentation)
@@ -182,6 +191,7 @@ SAVE_WEIGHTS_EVERY = int(args.save_weights_every)
 VALIDATE_EVERY = int(args.validate_every)
 NUMBER_OF_GPUS = int(args.number_of_gpus)
 NUMBER_OF_CPUS = int(args.number_of_cpus)
+IGNORE_CLASS_NAME = str(args.ignore_class_name)
 
 RANDOM_SEED = 2018
 PRINT_INFO_EVERY = 30  # Period (in epochs) of prints.
@@ -223,6 +233,15 @@ class_names_list, class_colors = retrieve_dataset_information(
 class_colors_dictionary = dict(zip(class_names_list, class_colors))
 number_of_classes = len(class_colors)
 
+# Determine whether or not there's a class to ignore.
+# Todo: improve this and allow the users to specify the name of the class through
+# parameters.
+if IGNORE_CLASS_NAME in class_colors_dictionary.keys():
+    ignore_class_label = list(
+        class_colors_dictionary.keys()).index(IGNORE_CLASS_NAME)
+else:
+    ignore_class_label = None
+
 segmentation_evaluator = SegmentationEvaluator(validation_measures,
                                                number_of_classes)
 
@@ -247,10 +266,18 @@ model_builder = ModelBuilder(
 predictions_tensor, init_fn = model_builder.build(
     model_name=MODEL_NAME, inputs=input_tensor)
 
+# Take away the masked out values from evaluation.
 weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
 unc = tf.where(
-    tf.equal(tf.reduce_sum(output_tensor, axis=-1), 0),
+    tf.equal(tf.argmax(output_tensor, axis=-1), ignore_class_label),
     tf.zeros(shape=weights_shape), tf.ones(shape=weights_shape))
+
+# Define the accuracy metric: Mean Intersection Over Union.
+miou, update_miou_op = slim.metrics.streaming_mean_iou(
+    predictions=tf.argmax(predictions_tensor, axis=-1),
+    labels=tf.argmax(output_tensor, axis=-1),
+    num_classes=number_of_classes,
+    weights=unc)
 
 adapted_loss = tf.nn.softmax_cross_entropy_with_logits_v2
 loss = tf.reduce_mean(
@@ -335,7 +362,8 @@ ADDITIONAL_INFO = {
     'used_training_samples': number_of_used_training_samples,
     'validation_samples': number_of_validation_samples,
     'used_validation_samples': number_of_used_validation_samples,
-    'validation_measures': validation_measures
+    'validation_measures': validation_measures,
+    'ignore_class_label': ignore_class_label
 }
 
 logs_formatter.write(additional_info=ADDITIONAL_INFO)
@@ -426,18 +454,28 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 number_of_validation_steps // NUMBER_OF_GPUS):
             for k in range(NUMBER_OF_GPUS):
                 with tf.device('/gpu:{}'.format(k)):
+                    session.run(tf.local_variables_initializer())
                     images_batch, annotations_batch = session.run(
                         next_validation_batch)
 
                     annotation = annotations_batch[0, :, :, :]
-                    valid_indices = np.where(np.sum(annotation, axis=-1) != 0)
+                    valid_indices = np.where(
+                        np.argmax(annotation, axis=-1) != (
+                            ignore_class_label
+                            if ignore_class_label is not None else -1))
 
-                    test = np.where(np.sum(annotation, axis=-1) == 0)
                     annotation = segmentation.one_hot_to_image(annotation)
 
-                    output_image = session.run(
-                        predictions_tensor,
-                        feed_dict={input_tensor: images_batch})
+                    output_image, _ = session.run(
+                        [predictions_tensor, update_miou_op],
+                        feed_dict={
+                            input_tensor: images_batch,
+                            output_tensor: annotations_batch
+                        })
+
+                    computed_miou = session.run(miou)
+                    print("-> Epoch {}, step {}, mIoU: {}".format(
+                        epoch, validation_step, computed_miou))
 
                     output_image = np.array(output_image[0, :, :, :])
                     output_image = segmentation.one_hot_to_image(output_image)
@@ -449,12 +487,19 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
                     if epoch % 5 == 0:
                         plt.figure()
-                        plt.subplot(1, 2, 1)
+                        plt.subplot(1, 3, 1)
+                        plt.imshow(np.array(images_batch[0, :, :, :]))
+                        plt.title('Image')
+                        plt.subplot(1, 3, 2)
                         plt.imshow(annotation)
-                        plt.subplot(1, 2, 2)
+                        plt.title('Ground truth')
+                        plt.subplot(1, 3, 3)
                         plt.imshow(output_image)
-                        plt.title(segmentation_evaluator.get_averaged_measures(current_epoch=epoch)['iou'])
-                        plt.imsave(Path(RESULTS_DIRECTORY, '{}-{}.png'.format(epoch, validation_step)))
+                        plt.title('IoU = {:0.3f}'.format(computed_miou))
+                        plt.savefig(
+                            Path('./tmp/', '{}-{}.png'.format(
+                                epoch, validation_step)))
+                        plt.close()
 
         summary_formatter.update(
             current_epoch=epoch,
