@@ -50,16 +50,28 @@ class DataGenerator():
                 annotation = load_image(annotation_path)
 
                 image, annotation = resize_to_size(image, annotation, self.input_size)
+                image = np.float32(image) / 255.0
                 
+                # plt.figure()
+                # plt.subplot(1, 2, 1)
+                # plt.imshow(annotation)
                 annotation = one_hot_to_image(
                     image_to_one_hot(annotation, self.class_colors))
- 
+                # plt.title('Before one hot')
+                # plt.subplot(1, 3, 2)
+                # plt.imshow(annotation)
+                # plt.title('After one hot')
+
                 annotation = ia.SegmentationMapOnImage(
                     annotation,
                     shape=image.shape,
                     nb_classes=self.number_of_classes)
 
-
+                # plt.subplot(1, 3, 3)
+                # plt.imshow(annotation.draw)
+                # plt.title('After map on image')
+                # plt.savefig("./tmp/colors/" + self.current_step + ".png")
+                
                 images_batch.append(image)
                 annotations_batch.append(annotation)
 
@@ -89,29 +101,29 @@ class DataGenerator():
 def get_batch_loader_for_subset(number_of_epochs, batch_size, input_size,
                                 subset_associations, class_colors):
     augmentation_pipeline = augmenters.Sequential([
-        augmenters.OneOf([
-            augmenters.Fog(deterministic=True),
-            augmenters.Snowflakes(deterministic=True),
-            augmenters.FastSnowyLandscape(deterministic=True),
-            augmenters.GaussianBlur(sigma=(0.0, 2.0), deterministic=True),
-            augmenters.Add((-20, 20), per_channel=0.5, deterministic=True),
-            augmenters.CoarseDropout(
-                0.02, size_percent=0.05, per_channel=0.5, deterministic=True),
-            augmenters.AdditiveGaussianNoise(
-                scale=0.1 * 255, deterministic=True),
-            augmenters.AddElementwise(
-                (-10, 10), per_channel=0.5, deterministic=True),
-            augmenters.Emboss(
-                alpha=(0.0, 0.5), strength=(0.5, 1.5), deterministic=True)
-        ]),
-        augmenters.SomeOf(3, [
-            augmenters.Grayscale(alpha=(0.0, 1.0)),
-            augmenters.ContrastNormalization((0.5, 1.5)),
-            augmenters.Affine(scale=(0.5, 1.5)),
-            augmenters.Affine(rotate=(-20, 20)),
-augmenters.CropAndPad(percent=(-0.15, 0.15)),
-            augmenters.Sharpen((0.0, 1.0)),
-        ])
+#         augmenters.OneOf([
+#             augmenters.Fog(deterministic=True),
+#             augmenters.Snowflakes(deterministic=True),
+#             augmenters.FastSnowyLandscape(deterministic=True),
+             augmenters.GaussianBlur(sigma=(0.0, 2.0), deterministic=True),
+#             augmenters.Add((-20, 20), per_channel=0.5, deterministic=True),
+#             augmenters.CoarseDropout(
+#                 0.02, size_percent=0.05, per_channel=0.5, deterministic=True),
+#             augmenters.AdditiveGaussianNoise(
+#                 scale=0.1 * 255, deterministic=True),
+#             augmenters.AddElementwise(
+#                 (-10, 10), per_channel=0.5, deterministic=True),
+#             augmenters.Emboss(
+#                 alpha=(0.0, 0.5), strength=(0.5, 1.5), deterministic=True)
+#         ]),
+#         augmenters.SomeOf(3, [
+#             augmenters.Grayscale(alpha=(0.0, 1.0)),
+#             augmenters.ContrastNormalization((0.5, 1.5)),
+#             augmenters.Affine(scale=(0.5, 1.5)),
+#             augmenters.Affine(rotate=(-20, 20)),
+# augmenters.CropAndPad(percent=(-0.15, 0.15)),
+#             augmenters.Sharpen((0.0, 1.0)),
+#         ])
     ], deterministic=True)
 
     data_generator = DataGenerator(number_of_epochs, batch_size,
