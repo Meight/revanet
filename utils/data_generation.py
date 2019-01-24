@@ -105,7 +105,7 @@ def get_batch_loader_for_subset(number_of_epochs, batch_size, input_size,
 #             augmenters.Fog(deterministic=True),
 #             augmenters.Snowflakes(deterministic=True),
 #             augmenters.FastSnowyLandscape(deterministic=True),
-             augmenters.GaussianBlur(sigma=(0.0, 2.0), deterministic=True),
+             # augmenters.GaussianBlur(sigma=(0.0, 2.0), deterministic=True),
 #             augmenters.Add((-20, 20), per_channel=0.5, deterministic=True),
 #             augmenters.CoarseDropout(
 #                 0.02, size_percent=0.05, per_channel=0.5, deterministic=True),
