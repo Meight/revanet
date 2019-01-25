@@ -205,8 +205,8 @@ TRAINING_PARAMETERS = {
 # os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 validation_measures = [
-        'accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou'
-    ]
+    'accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou'
+]
 
 files_formatter_factory = FilesFormatterFactory(
     mode='training',
@@ -293,12 +293,9 @@ checkpoint_formatter = files_formatter_factory.get_checkpoint_formatter(
 summary_formatter = files_formatter_factory.get_summary_formatter()
 logs_formatter = files_formatter_factory.get_logs_formatter()
 
-paths = None
-subset_associations = None
-
 subset_associations = prepare_data(TRAIN_PATH, TRAIN_ANNOTATIONS_PATH,
-                                       VALIDATION_PATH,
-                                       VALIDATION_ANNOTATIONS_PATH)
+                                   VALIDATION_PATH,
+                                   VALIDATION_ANNOTATIONS_PATH)
 
 train_image_paths = list(subset_associations['train'].keys())
 train_annotation_paths = list(subset_associations['train'].values())
@@ -464,6 +461,9 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                         prediction=output_image,
                         annotation=annotation,
                         valid_indices=valid_indices)
+
+                    segmentation_evaluator.add_custom_measure_value(
+                        'tf_miou', computed_miou)
 
                     if epoch % 5 == 0:
                         plt.figure()

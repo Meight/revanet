@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from pprint import pprint
 
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score,
@@ -30,6 +29,18 @@ class SegmentationEvaluator:
 
         self.measures_history = {}
         self.initialize_history()
+
+    def add_measure(self, measure_name):
+        self.active_measures.append(measure_name)
+
+    def add_custom_measure_value(self, measure_name, value):
+        if not measure_name in self.active_measures:
+            self.add_measure(measure_name)
+
+        if not measure_name in self.measures_history.keys():
+            self.measures_history[measure_name] = []
+        else:
+            self.measures_history[measure_name].append(value)
 
     def initialize_history(self):
         """
@@ -95,17 +106,26 @@ class SegmentationEvaluator:
     @staticmethod
     def compute_precision(prediction, annotation):
         return precision_score(
-            y_true=annotation, y_pred=prediction, average='weighted', labels=np.unique(annotation))
+            y_true=annotation,
+            y_pred=prediction,
+            average='weighted',
+            labels=np.unique(annotation))
 
     @staticmethod
     def compute_recall(prediction, annotation):
         return recall_score(
-            y_true=annotation, y_pred=prediction, average='weighted', labels=np.unique(annotation))
+            y_true=annotation,
+            y_pred=prediction,
+            average='weighted',
+            labels=np.unique(annotation))
 
     @staticmethod
     def compute_f1(prediction, annotation):
         return f1_score(
-            y_true=annotation, y_pred=prediction, average='weighted', labels=np.unique(annotation))
+            y_true=annotation,
+            y_pred=prediction,
+            average='weighted',
+            labels=np.unique(annotation))
 
     @staticmethod
     def compute_accuracy(prediction, annotation):
