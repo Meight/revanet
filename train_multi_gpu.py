@@ -380,7 +380,7 @@ validation_dataset = generate_dataset(
     validation_augmenter,
     input_size=INPUT_SIZE,
     number_of_epochs=NUMBER_OF_EPOCHS,
-    batch_size=1,
+    batch_size=BATCH_SIZE,
     number_of_cpus=NUMBER_OF_CPUS,
     number_of_gpus=NUMBER_OF_GPUS,
     class_colors=class_colors)
