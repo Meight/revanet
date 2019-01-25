@@ -144,6 +144,12 @@ parser.add_argument(
     help='''Name of the class that's representing
                     the parts of an image that should be ignored
                     during evaluation and training.''')
+parser.add_argument(
+    '--augmentation-strategy',
+    choices=['none', 'light', 'aggressive'],
+    default='none',
+    type=str,
+    help='The strategy to adopt for data augmentation during training.')
 args = parser.parse_args()
 
 VALIDATION_THRESHOLD = float(args.prediction_validation_threshold)
@@ -185,6 +191,7 @@ VALIDATE_EVERY = int(args.validate_every)
 NUMBER_OF_GPUS = int(args.number_of_gpus)
 NUMBER_OF_CPUS = int(args.number_of_cpus)
 IGNORE_CLASS_NAME = str(args.ignore_class_name)
+AUGMENTATION_STRATEGY = str(args.augmentation_strategy)
 
 RANDOM_SEED = 2018
 PRINT_INFO_EVERY = 30  # Period (in epochs) of prints.
@@ -199,7 +206,8 @@ TRAINING_PARAMETERS = {
     'train_images_path': TRAIN_PATH,
     'train_annotations_path': TRAIN_ANNOTATIONS_PATH,
     'validation_images_path': VALIDATION_PATH,
-    'validation_annotations_path': VALIDATION_ANNOTATIONS_PATH
+    'validation_annotations_path': VALIDATION_ANNOTATIONS_PATH,
+    'augmentation_strategy': AUGMENTATION_STRATEGY
 }
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = '0'
