@@ -364,7 +364,8 @@ train_augmenter, train_batch_loader, number_of_training_steps = get_batch_loader
     batch_size=BATCH_SIZE,
     input_size=INPUT_SIZE,
     subset_associations=subset_associations['train'],
-    class_colors=class_colors)
+    class_colors=class_colors,
+    strategy=AUGMENTATION_STRATEGY) # Use augmentation only on the train set.
 
 validation_augmenter, validation_batch_loader, number_of_validation_steps = get_batch_loader_for_subset(
     number_of_epochs=NUMBER_OF_EPOCHS,
