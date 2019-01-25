@@ -41,12 +41,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--number-of-cpus', required=True, type=int)
 parser.add_argument('--number-of-gpus', required=True, type=int)
 parser.add_argument(
-    '--is-multi-label-segmentation',
-    action='store_true',
-    default=False,
-    help='''Whether or not to interpret the task as multi-label
-                    classification.''')
-parser.add_argument(
     '--prediction-validation-threshold',
     action='store',
     default=0.5,
@@ -152,7 +146,6 @@ parser.add_argument(
                     during evaluation and training.''')
 args = parser.parse_args()
 
-IS_MULTI_LABEL_CLASSIFICATION = bool(args.is_multi_label_segmentation)
 VALIDATION_THRESHOLD = float(args.prediction_validation_threshold)
 INPUT_SIZE = int(args.input_size)
 
@@ -211,10 +204,7 @@ TRAINING_PARAMETERS = {
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
-if IS_MULTI_LABEL_CLASSIFICATION:
-    validation_measures = ['exact_match_ratio', 'hamming_score']
-else:
-    validation_measures = [
+validation_measures = [
         'accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou'
     ]
 
@@ -306,18 +296,9 @@ logs_formatter = files_formatter_factory.get_logs_formatter()
 paths = None
 subset_associations = None
 
-if not IS_MULTI_LABEL_CLASSIFICATION:
-    subset_associations = prepare_data(TRAIN_PATH, TRAIN_ANNOTATIONS_PATH,
+subset_associations = prepare_data(TRAIN_PATH, TRAIN_ANNOTATIONS_PATH,
                                        VALIDATION_PATH,
                                        VALIDATION_ANNOTATIONS_PATH)
-else:
-    paths = gather_multi_label_data(dataset_directory=DATASET_PATH)
-
-    train_input_names = list(paths['train'].keys())
-    validation_input_names = list(paths['val'].keys())
-    test_input_names = list(paths['test'].keys())
-    train_output_names = list(paths['train'].values())
-    validation_output_names = list(paths['val'].values())
 
 train_image_paths = list(subset_associations['train'].keys())
 train_annotation_paths = list(subset_associations['train'].values())
@@ -356,7 +337,6 @@ ADDITIONAL_INFO = {
     'validation_every': VALIDATE_EVERY,
     'saving_weights_every': SAVE_WEIGHTS_EVERY,
     'random_seed': RANDOM_SEED,
-    'is_multi_label_classification': IS_MULTI_LABEL_CLASSIFICATION,
     'validation_threshold': VALIDATION_THRESHOLD,
     'training_samples': number_of_training_samples,
     'used_training_samples': number_of_used_training_samples,
