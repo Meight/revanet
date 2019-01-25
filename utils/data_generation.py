@@ -23,8 +23,10 @@ class DataGenerator():
         self.current_step = 0
         self.number_of_samples = len(subset_associations.keys())
         self.steps_per_epoch = self.number_of_samples // batch_size
-        print('There are {} samples, so {} steps per epoch with batch size {}.'
-              .format(self.number_of_samples, self.steps_per_epoch, self.batch_size))
+        print(
+            'There are {} samples, so {} steps per epoch with batch size {}.'.
+            format(self.number_of_samples, self.steps_per_epoch,
+                   self.batch_size))
         self.image_paths = list(subset_associations.keys())
         self.subset_associations = subset_associations
         self.class_colors = class_colors
@@ -49,9 +51,10 @@ class DataGenerator():
                     self.subset_associations[sample_path])
                 annotation = load_image(annotation_path)
 
-                image, annotation = resize_to_size(image, annotation, self.input_size)
+                image, annotation = resize_to_size(image, annotation,
+                                                   self.input_size)
                 image = np.float32(image) / 255.0
-                
+
                 # plt.figure()
                 # plt.subplot(1, 2, 1)
                 # plt.imshow(annotation)
@@ -71,7 +74,7 @@ class DataGenerator():
                 # plt.imshow(annotation.draw)
                 # plt.title('After map on image')
                 # plt.savefig("./tmp/colors/" + self.current_step + ".png")
-                
+
                 images_batch.append(image)
                 annotations_batch.append(annotation)
 
@@ -98,36 +101,53 @@ class DataGenerator():
             self.steps_per_epoch)
 
 
-def get_batch_loader_for_subset(number_of_epochs, batch_size, input_size,
-                                subset_associations, class_colors):
-    augmentation_pipeline = augmenters.Sequential([
-#         augmenters.OneOf([
-#             augmenters.Fog(deterministic=True),
-#             augmenters.Snowflakes(deterministic=True),
-#             augmenters.FastSnowyLandscape(deterministic=True),
-             # augmenters.GaussianBlur(sigma=(0.0, 2.0), deterministic=True),
-#             augmenters.Add((-20, 20), per_channel=0.5, deterministic=True),
-#             augmenters.CoarseDropout(
-#                 0.02, size_percent=0.05, per_channel=0.5, deterministic=True),
-#             augmenters.AdditiveGaussianNoise(
-#                 scale=0.1 * 255, deterministic=True),
-#             augmenters.AddElementwise(
-#                 (-10, 10), per_channel=0.5, deterministic=True),
-#             augmenters.Emboss(
-#                 alpha=(0.0, 0.5), strength=(0.5, 1.5), deterministic=True)
-#         ]),
-#         augmenters.SomeOf(3, [
-#             augmenters.Grayscale(alpha=(0.0, 1.0)),
-#             augmenters.ContrastNormalization((0.5, 1.5)),
-#             augmenters.Affine(scale=(0.5, 1.5)),
-#             augmenters.Affine(rotate=(-20, 20)),
-# augmenters.CropAndPad(percent=(-0.15, 0.15)),
-#             augmenters.Sharpen((0.0, 1.0)),
-#         ])
-    ], deterministic=True)
+def get_batch_loader_for_subset(number_of_epochs,
+                                batch_size,
+                                input_size,
+                                subset_associations,
+                                class_colors,
+                                strategy='none'):
+
+    base_augmenters = augmenters.SomeOf(3, [
+        augmenters.Grayscale(alpha=(0.0, 1.0)),
+        augmenters.ContrastNormalization((0.5, 1.5)),
+        augmenters.Affine(scale=(0.5, 1.5)),
+        augmenters.Affine(rotate=(-20, 20)),
+        augmenters.CropAndPad(percent=(-0.15, 0.15)),
+        augmenters.Sharpen((0.0, 1.0)),
+    ])
+
+    aggressive_augmenters = augmenters.append(
+        augmenters.OneOf([
+            augmenters.Fog(deterministic=True),
+            augmenters.Snowflakes(deterministic=True),
+            augmenters.FastSnowyLandscape(deterministic=True),
+            augmenters.GaussianBlur(sigma=(0.0, 2.0), deterministic=True),
+            augmenters.Add((-20, 20), per_channel=0.5, deterministic=True),
+            augmenters.CoarseDropout(
+                0.02, size_percent=0.05, per_channel=0.5, deterministic=True),
+            augmenters.AdditiveGaussianNoise(
+                scale=0.1 * 255, deterministic=True),
+            augmenters.AddElementwise((-10, 10),
+                                      per_channel=0.5,
+                                      deterministic=True),
+            augmenters.Emboss(
+                alpha=(0.0, 0.5), strength=(0.5, 1.5), deterministic=True)
+        ]))
+
+    if strategy == 'light':
+        used_augmenters = [base_augmenters]
+    elif strategy == 'aggresive':
+        used_augmenters = [aggressive_augmenters, base_augmenters]
+    else:
+        used_augmenters = []
+
+    augmentation_pipeline = augmenters.Sequential(
+        used_augmenters, deterministic=True)
 
     data_generator = DataGenerator(number_of_epochs, batch_size,
-                                   subset_associations, class_colors, input_size)
+                                   subset_associations, class_colors,
+                                   input_size)
     batch_loader = ia.BatchLoader(data_generator.get_batch)
     bg_augmenter = ia.BackgroundAugmenter(batch_loader, augmentation_pipeline)
 
