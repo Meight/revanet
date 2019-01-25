@@ -35,6 +35,66 @@ Your dataset is ready!
 
 _TODO._
 
+```
+  --number-of-cpus NUMBER_OF_CPUS
+  --number-of-gpus NUMBER_OF_GPUS
+  --prediction-validation-threshold PREDICTION_VALIDATION_THRESHOLD
+                        Whether or not a threshold should be applied to
+                        validate predictions during multi-label
+                        classification.
+  --learning-rate LEARNING_RATE
+                        Learning rate to use
+  --number-of-epochs NUMBER_OF_EPOCHS
+                        Number of epochs to train for
+  --first-epoch FIRST_EPOCH
+                        Start counting epochs from this number
+  --save-weights-every SAVE_WEIGHTS_EVERY
+                        How often to save checkpoints (epochs)
+  --validate-every VALIDATE_EVERY
+                        How often to perform validation (epochs)
+  --continue-training   Whether to continue training from a checkpoint
+  --dataset-name DATASET_NAME
+                        Dataset you are using.
+  --input-size INPUT_SIZE
+                        Box six of input image to network
+  --batch-size BATCH_SIZE
+                        Number of images in each batch
+  --training-ratio TRAINING_RATIO
+                        The ratio of training samples to use to perform actual
+                        training.
+  --validation-ratio VALIDATION_RATIO
+                        The ratio of validation samples to use to perform
+                        actual validation.
+  --model-name MODEL_NAME
+                        The model you are using. See model_builder.py for
+                        supported models
+  --backbone-name BACKBONE_NAME
+                        The backbone to use. See frontend_builder.py for
+                        supported models
+  --results-directory RESULTS_DIRECTORY
+                        Path to the directory where the results are to be
+                        stored.
+  --train-folder TRAIN_FOLDER
+                        Name of the folder in which the training samples are
+                        to be found.
+  --train-annotations-folder TRAIN_ANNOTATIONS_FOLDER
+                        Name of the folder containing the annotations
+                        corresponding to the training samples.
+  --validation-folder VALIDATION_FOLDER
+                        Name of the folder in which the validation samples are
+                        to be found.
+  --validation-annotations-folder VALIDATION_ANNOTATIONS_FOLDER
+                        Name of the folder containing the annotations
+                        corresponding to the validation samples.
+  --ignore-class-name IGNORE_CLASS_NAME
+                        Name of the class that's representing the parts of an
+                        image that should be ignored during evaluation and
+                        training.
+  --augmentation-strategy {none,light,aggressive}
+                        The strategy to adopt for data augmentation during
+                        training.
+```
+
 ## Todo list
 
 Ordered by priority.
@@ -55,8 +115,8 @@ Ordered by priority.
     - [x] ResNet101
     - [ ] ResNet50
     - [ ] ResNet152
-- [ ] change the data handling to make use of the `tf.Dataset` API
+- [x] change the data handling to make use of the `tf.Dataset` API
 - [ ] thorough readme file
-- [ ] utility script to check a dataset has valid format
+- [x] utility script to check a dataset has valid format
 - [ ] add substantial documentation
-- [ ] add support for multi-GPU processing
+- [x] add support for multi-GPU processing
