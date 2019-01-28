@@ -19,6 +19,8 @@ from utils.utils import (gather_multi_label_data,
 from utils.validation import SegmentationEvaluator
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--number-of-cpus', required=True, type=int)
+parser.add_argument('--number-of-gpus', required=True, type=int)
 parser.add_argument(
     '--learning-rate',
     type=float,
@@ -102,6 +104,20 @@ parser.add_argument(
     help=
     'Name of the folder containing the annotations corresponding to the validation samples.'
 )
+parser.add_argument(
+    '--ignore-class-name',
+    type=str,
+    default='ambiguous',
+    help='''Name of the class that's representing
+                    the parts of an image that should be ignored
+                    during evaluation and training.''')
+parser.add_argument(
+    '--augmentation-strategy',
+    choices=['none', 'light', 'aggressive'],
+    default='none',
+    type=str,
+    help='The strategy to adopt for data augmentation during training.')
+
 args = parser.parse_args()
 
 INPUT_SIZE = int(args.input_size)
@@ -152,8 +168,10 @@ TRAINING_PARAMETERS = {
     'validation_annotations_path': VALIDATION_ANNOTATIONS_PATH
 }
 
-NUMBER_OF_CPUS = 1
-NUMBER_OF_GPUS = 1
+NUMBER_OF_GPUS = int(args.number_of_gpus)
+NUMBER_OF_CPUS = int(args.number_of_cpus)
+IGNORE_CLASS_NAME = str(args.ignore_class_name)
+AUGMENTATION_STRATEGY = str(args.augmentation_strategy)
 
 validation_measures = [
     'accuracy', 'accuracy_per_class', 'precision', 'recall', 'f1', 'iou'
@@ -169,7 +187,8 @@ ADDITIONAL_INFO = {
     'validation_measures': validation_measures,
     'train_annotations_folder': TRAIN_ANNOTATIONS_PATH,
     'number_of_gpus': NUMBER_OF_GPUS,
-    'number_of_cpus': NUMBER_OF_CPUS
+    'number_of_cpus': NUMBER_OF_CPUS,
+    'augmentation_strategy': AUGMENTATION_STRATEGY
 }
 
 files_formatter_factory = FilesFormatterFactory(
@@ -182,6 +201,25 @@ files_formatter_factory = FilesFormatterFactory(
     verbose=True,
     results_folder=RESULTS_DIRECTORY)
 
+random.seed(RANDOM_SEED)
+
+class_names_list, class_colors = retrieve_dataset_information(
+    dataset_path=DATASET_PATH)
+class_colors_dictionary = dict(zip(class_names_list, class_colors))
+number_of_classes = len(class_colors)
+
+# Determine whether or not there's a class to ignore.
+# Todo: improve this and allow the users to specify the name of the class through
+# parameters.
+if IGNORE_CLASS_NAME in class_colors_dictionary.keys():
+    ignore_class_label = list(
+        class_colors_dictionary.keys()).index(IGNORE_CLASS_NAME)
+else:
+    ignore_class_label = None
+
+segmentation_evaluator = SegmentationEvaluator(validation_measures,
+                                               number_of_classes)
+
 
 def get_available_gpus():
     """
@@ -192,6 +230,31 @@ def get_available_gpus():
     from tensorflow.python.client import device_lib
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+
+def perform_validation(model_fn, input_batch, output_batch, epoch):
+    for i, id in enumerate(get_available_gpus()):
+        annotations = tf.argmax(output_batch, axis=-1)
+        predictions = tf.argmax(model_fn, axis=-1)
+
+        for k in range(BATCH_SIZE):
+            annotation = annotations[k, :, :, :]
+            prediction = predictions[k, :, :, :]
+
+            valid_indices = np.where(annotation != (
+                ignore_class_label if ignore_class_label is not None else -1))
+
+            segmentation_evaluator.evaluate(
+                prediction=prediction,
+                annotation=annotation,
+                valid_indices=valid_indices)
+
+        summary_formatter.update(
+            current_epoch=epoch,
+            measures_dictionary=segmentation_evaluator.get_averaged_measures(
+                current_epoch=epoch))
+
+    pprint(segmentation_evaluator.get_averaged_measures(current_epoch=epoch))
 
 
 def create_parallel_optimization(model_fn,
@@ -410,16 +473,6 @@ subset_associations = prepare_data(TRAIN_PATH, TRAIN_ANNOTATIONS_PATH,
                                    VALIDATION_PATH,
                                    VALIDATION_ANNOTATIONS_PATH)
 
-random.seed(RANDOM_SEED)
-
-class_names_list, class_colors = retrieve_dataset_information(
-    dataset_path=DATASET_PATH)
-class_colors_dictionary = dict(zip(class_names_list, class_colors))
-number_of_classes = len(class_colors)
-
-segmentation_evaluator = SegmentationEvaluator(validation_measures,
-                                               number_of_classes)
-
 train_augmenter, train_batch_loader, training_steps_per_epoch = get_batch_loader_for_subset(
     number_of_epochs=NUMBER_OF_EPOCHS,
     batch_size=BATCH_SIZE,
@@ -435,6 +488,16 @@ training_dataset = generate_dataset(
     number_of_cpus=NUMBER_OF_CPUS,
     number_of_gpus=NUMBER_OF_GPUS,
     class_colors=class_colors)
+
+validation_dataset = generate_dataset(
+    validation_augmenter,
+    input_size=INPUT_SIZE,
+    number_of_epochs=NUMBER_OF_EPOCHS,
+    batch_size=BATCH_SIZE,
+    number_of_cpus=NUMBER_OF_CPUS,
+    number_of_gpus=NUMBER_OF_GPUS,
+    class_colors=class_colors)
+validation_iterator = validation_dataset.make_one_shot_iterator()
 
 tf.reset_default_graph()
 parallel_training(training_dataset, training_steps_per_epoch)
