@@ -219,7 +219,8 @@ def create_parallel_optimization(model_fn,
                 # as we'd lose all interest in the parallelization.
                 weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
                 unc = tf.where(
-                    tf.equal(tf.reduce_sum(output_batch, axis=-1), 0),
+                    tf.equal(
+                        tf.argmax(output_tensor, axis=-1), ignore_class_label),
                     tf.zeros(shape=weights_shape),
                     tf.ones(shape=weights_shape))
 
@@ -232,8 +233,12 @@ def create_parallel_optimization(model_fn,
 
                 annotations = tf.argmax(output_batch, axis=-1)
                 predictions = tf.argmax(model_fn, axis=-1)
-                iou, update_metric = tf.metrics.mean_iou(labels=annotations, predictions=predictions, num_classes=21, weights=tf.cast(unc, tf.float32), name="mean_iou")
-
+                iou, update_metric = tf.metrics.mean_iou(
+                    labels=annotations,
+                    predictions=predictions,
+                    num_classes=21,
+                    weights=tf.cast(unc, tf.float32),
+                    name="mean_iou")
 
                 score = tf.reduce_mean(iou)
                 scores.append(score)
@@ -335,23 +340,28 @@ def parallel_training(dataset, training_steps_per_epoch):
         model_name=MODEL_NAME, inputs=input_batch)
 
     optimizer = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE)
-    update_op, loss, score, update_metric = create_parallel_optimization(model_fn, input_batch,
-                                                   output_batch, optimizer)
+    update_op, loss, score, update_metric = create_parallel_optimization(
+        model_fn, input_batch, output_batch, optimizer)
 
-    do_training(training_steps_per_epoch, update_op, loss, score, update_metric, init_fn)
+    do_training(training_steps_per_epoch, update_op, loss, score,
+                update_metric, init_fn)
 
 
 def do_validation(session, model_fn, dataset):
-    predictions_batch = session.run(model_fn()) 
+    predictions_batch = session.run(model_fn())
 
 
-def do_training(training_steps_per_epoch, update_op, loss, score, update_metric, init_fn=None):
+def do_training(training_steps_per_epoch,
+                update_op,
+                loss,
+                score,
+                update_metric,
+                init_fn=None):
     config = tf.ConfigProto(allow_soft_placement=True)
     config.gpu_options.allow_growth = True
     with tf.Session(config=config) as session:
         session.run(tf.global_variables_initializer())
-        session.run(tf.local_variables_initializer()) 
-
+        session.run(tf.local_variables_initializer())
 
         if init_fn is not None:
             init_fn(session)
@@ -370,7 +380,8 @@ def do_training(training_steps_per_epoch, update_op, loss, score, update_metric,
 
                 start_time = time.time()
 
-                _, loss_value, _ = session.run((update_op, loss, update_metric))
+                _, loss_value, _ = session.run((update_op, loss,
+                                                update_metric))
 
                 if current_epoch != 0 and current_epoch % VALIDATE_EVERY == 0:
                     pass
@@ -384,7 +395,9 @@ def do_training(training_steps_per_epoch, update_op, loss, score, update_metric,
                     score_value = session.run(score)
                     print(
                         '[{} - {} #{}/{} - Step {}] Seen samples: {}, current loss: {}, score: {}, time spent on batch: {:0.2f}'
-                        .format(MODEL_NAME, BACKBONE_NAME, current_epoch + 1, NUMBER_OF_EPOCHS, step - step // (current_epoch + 1),
+                        .format(MODEL_NAME, BACKBONE_NAME, current_epoch + 1,
+                                NUMBER_OF_EPOCHS,
+                                step - step // (current_epoch + 1),
                                 step * BATCH_SIZE, loss_value, score_value,
                                 time.time() - start_time))
 
