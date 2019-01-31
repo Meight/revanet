@@ -63,10 +63,11 @@ class SegmentationEvaluator:
         annotation = annotation[valid_indices].flatten()
 
         for measure_name in self.active_measures:
-            measure_function = self._get_available_measures_with_functions(
-            )[measure_name]
-            self.measures_history[measure_name].append(
-                measure_function(prediction, annotation))
+            if measure_name in self._get_available_measures_with_functions.keys():
+                measure_function = self._get_available_measures_with_functions(
+                )[measure_name]
+                self.measures_history[measure_name].append(
+                    measure_function(prediction, annotation))
 
     def get_averaged_measures(self, current_epoch):
         """
