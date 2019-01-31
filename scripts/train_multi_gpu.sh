@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=bisenet-gpu
-#SBATCH --output=/projets/thesepizenberg/deep-learning/logs/gpu-bisenet-%j.out
-#SBATCH --error=/projets/thesepizenberg/deep-learning/logs/gpu-bisenet-%j.out
+#SBATCH --job-name=altered-pascal
+#SBATCH --output=/projets/thesepizenberg/deep-learning/logs/altered-%j.out
+#SBATCH --error=/projets/thesepizenberg/deep-learning/logs/altered-%j.out
 
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=5
 #SBATCH --partition=GPUNodes
 #SBATCH --gres=gpu:1
 #SBATCH --gres-flags=enforce-binding
@@ -31,9 +31,9 @@ srun keras-py3-tf ${VENV_PATH}/bin/python "$TRAIN_SCRIPT_DIR/train_multi_gpu.py"
                 --batch-size=${4} \
                 --dataset-name=${5} \
                 --train-annotations-folder=${6} \
-                --number-of-epochs=15 \
-                --save-weights-every=5 \
-                --validate-every=1 \
+                --number-of-epochs=${7} \
+                --save-weights-every=${8} \
+                --validate-every=${9} \
                 --number-of-gpus=1 \
-                --number-of-cpus=4
+                --number-of-cpus=5
 wait
