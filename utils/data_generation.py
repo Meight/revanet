@@ -117,8 +117,7 @@ def get_batch_loader_for_subset(number_of_epochs,
         augmenters.Sharpen((0.0, 1.0)),
     ])
 
-    aggressive_augmenters = augmenters.append(
-        augmenters.OneOf([
+    aggressive_augmenters = augmenters.OneOf([
             augmenters.Fog(deterministic=True),
             augmenters.Snowflakes(deterministic=True),
             augmenters.FastSnowyLandscape(deterministic=True),
@@ -133,7 +132,7 @@ def get_batch_loader_for_subset(number_of_epochs,
                                       deterministic=True),
             augmenters.Emboss(
                 alpha=(0.0, 0.5), strength=(0.5, 1.5), deterministic=True)
-        ]))
+        ])
 
     if strategy == 'light':
         used_augmenters = [base_augmenters]
