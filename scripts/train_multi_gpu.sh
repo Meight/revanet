@@ -36,5 +36,5 @@ srun keras-py3-tf ${VENV_PATH}/bin/python "$TRAIN_SCRIPT_DIR/train_multi_gpu.py"
                 --validate-every=${9} \
                 --number-of-gpus=1 \
                 --number-of-cpus=5 \
-                --validation-strategy=${10}
+                --augmentation-strategy=${10}
 wait
