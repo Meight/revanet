@@ -9,6 +9,7 @@ BATCH_SIZE=(1)
 NUMBER_OF_EPOCHS=125
 SAVE_WEIGHTS_EVERY=25
 VALIDATE_EVERY=1
+AUGMENTATION_STRATEGY="light" # one of none, light or aggressive
 DATASET="augmented-pascal-altered"
 
 ALTERATION="erosion"
@@ -22,7 +23,7 @@ for input_size in "${INPUT_SIZE[@]}"; do
         for model_name in "${MODEL_NAMES[@]}"; do
             for frontend_name in "${FRONTEND_NAMES[@]}"; do
                 for ((i=0; i<${#TRAIN_FOLDERS[@]}; i++)); do
-                    sbatch "$SCRIPT_PATH"/train_multi_gpu.sh ${model_name} ${frontend_name} ${input_size} ${batch_size} ${DATASET} "$(basename ${TRAIN_FOLDERS[$i]})" ${NUMBER_OF_EPOCHS} ${SAVE_WEIGHTS_EVERY} ${VALIDATE_EVERY}
+                    sbatch "$SCRIPT_PATH"/train_multi_gpu.sh ${model_name} ${frontend_name} ${input_size} ${batch_size} ${DATASET} "$(basename ${TRAIN_FOLDERS[$i]})" ${NUMBER_OF_EPOCHS} ${SAVE_WEIGHTS_EVERY} ${VALIDATE_EVERY} ${AUGMENTATION_STRATEGY}
                 done
             done;
         done;
