@@ -62,10 +62,11 @@ class SegmentationEvaluator:
         prediction = prediction[valid_indices].flatten()
         annotation = annotation[valid_indices].flatten()
 
+        available_functions = self._get_available_measures_with_functions()
+
         for measure_name in self.active_measures:
-            if measure_name in self._get_available_measures_with_functions.keys():
-                measure_function = self._get_available_measures_with_functions(
-                )[measure_name]
+            if measure_name in available_functions.keys():
+                measure_function = available_functions[measure_name]
                 self.measures_history[measure_name].append(
                     measure_function(prediction, annotation))
 
