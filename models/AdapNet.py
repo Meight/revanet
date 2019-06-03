@@ -150,11 +150,11 @@ def multi_scale_block_2(inputs, filters_1, filters_2, filters_3, p, d):
     return net
 
 
-def build_adaptnet(inputs,
-                   number_of_classes,
-                   weights_directory,
-                   backbone_name="ResNet101",
-                   is_training=True):
+def build_adapnet(inputs,
+                  number_of_classes,
+                  weights_directory,
+                  backbone_name="ResNet101",
+                  is_training=True):
     net = conv_block(inputs, n_filters=64, kernel_size=[3, 3])
     net = conv_block(net, n_filters=64, kernel_size=[7, 7], stride=2)
     net = slim.pool(net, [2, 2], stride=[2, 2], pooling_type='MAX')
