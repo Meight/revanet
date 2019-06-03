@@ -95,13 +95,16 @@ parser.add_argument('--validation-ratio',
 parser.add_argument('--model-name',
                     type=str,
                     default="BiSeNet",
-                    help='''The model you are using. See model_builder.py for
-                    supported models''')
+                    choices=[
+                        'BiSeNet', 'DeepLabv3_plus', 'GCN', 'FC-DenseNet56',
+                        'FC-DenseNet67', 'FC-DenseNet103', 'AdapNet'
+                    ],
+                    help='The model to train (default: %(default)s).')
 parser.add_argument('--backbone-name',
                     type=str,
                     default="ResNet101",
-                    help='''The backbone to use. See frontend_builder.py for
-                    supported models''')
+                    choices=['ResNet101'],
+                    help='The backbone to use (default: %(default)s).')
 parser.add_argument('--results-directory',
                     type=str,
                     default='./',
