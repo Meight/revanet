@@ -20,11 +20,11 @@ import time
 from pathlib import Path
 from pprint import pprint
 
-import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
 
+import matplotlib.pyplot as plt
 import tensorflow as tf
+from tqdm import tqdm
 from utils import segmentation, utils
 from utils.arguments import ratio
 from utils.data_generation import get_batch_loader_for_subset
@@ -40,108 +40,97 @@ slim = tf.contrib.slim
 parser = argparse.ArgumentParser()
 parser.add_argument('--number-of-cpus', required=True, type=int)
 parser.add_argument('--number-of-gpus', required=True, type=int)
-parser.add_argument(
-    '--prediction-validation-threshold',
-    action='store',
-    default=0.5,
-    type=ratio,
-    help='''Whether or not a threshold should be applied to
+parser.add_argument('--prediction-validation-threshold',
+                    action='store',
+                    default=0.5,
+                    type=ratio,
+                    help='''Whether or not a threshold should be applied to
                     validate predictions during multi-label classification.''')
-parser.add_argument(
-    '--learning-rate', type=float, default=0.0001, help='Learning rate to use')
-parser.add_argument(
-    '--number-of-epochs',
-    type=int,
-    default=300,
-    help='Number of epochs to train for')
-parser.add_argument(
-    '--first-epoch',
-    type=int,
-    default=0,
-    help='Start counting epochs from this number')
-parser.add_argument(
-    '--save-weights-every',
-    type=int,
-    default=5,
-    help='How often to save checkpoints (epochs)')
-parser.add_argument(
-    '--validate-every',
-    type=int,
-    default=1,
-    help='How often to perform validation (epochs)')
-parser.add_argument(
-    '--continue-training',
-    action='store_true',
-    default=False,
-    help='Whether to continue training from a checkpoint')
-parser.add_argument(
-    '--dataset-name', type=str, required=True, help='Dataset you are using.')
-parser.add_argument(
-    '--input-size',
-    type=int,
-    default=512,
-    help='Box six of input image to network')
-parser.add_argument(
-    '--batch-size', type=int, default=1, help='Number of images in each batch')
-parser.add_argument(
-    '--training-ratio',
-    type=ratio,
-    default=1.0,
-    help='''The ratio of training samples to use to perform
+parser.add_argument('--learning-rate',
+                    type=float,
+                    default=0.0001,
+                    help='Learning rate to use')
+parser.add_argument('--number-of-epochs',
+                    type=int,
+                    default=300,
+                    help='Number of epochs to train for')
+parser.add_argument('--first-epoch',
+                    type=int,
+                    default=0,
+                    help='Start counting epochs from this number')
+parser.add_argument('--save-weights-every',
+                    type=int,
+                    default=5,
+                    help='How often to save checkpoints (epochs)')
+parser.add_argument('--validate-every',
+                    type=int,
+                    default=1,
+                    help='How often to perform validation (epochs)')
+parser.add_argument('--continue-training',
+                    action='store_true',
+                    default=False,
+                    help='Whether to continue training from a checkpoint')
+parser.add_argument('--dataset-name',
+                    type=str,
+                    required=True,
+                    help='Dataset you are using.')
+parser.add_argument('--input-size',
+                    type=int,
+                    default=512,
+                    help='Box six of input image to network')
+parser.add_argument('--batch-size',
+                    type=int,
+                    default=1,
+                    help='Number of images in each batch')
+parser.add_argument('--training-ratio',
+                    type=ratio,
+                    default=1.0,
+                    help='''The ratio of training samples to use to perform
                     actual training.''')
-parser.add_argument(
-    '--validation-ratio',
-    type=ratio,
-    default=1.0,
-    help='''The ratio of validation samples to use to perform
+parser.add_argument('--validation-ratio',
+                    type=ratio,
+                    default=1.0,
+                    help='''The ratio of validation samples to use to perform
                     actual validation.''')
-parser.add_argument(
-    '--model-name',
-    type=str,
-    default="BiSeNet",
-    help='''The model you are using. See model_builder.py for
+parser.add_argument('--model-name',
+                    type=str,
+                    default="BiSeNet",
+                    help='''The model you are using. See model_builder.py for
                     supported models''')
-parser.add_argument(
-    '--backbone-name',
-    type=str,
-    default="ResNet101",
-    help='''The backbone to use. See frontend_builder.py for
+parser.add_argument('--backbone-name',
+                    type=str,
+                    default="ResNet101",
+                    help='''The backbone to use. See frontend_builder.py for
                     supported models''')
-parser.add_argument(
-    '--results-directory',
-    type=str,
-    default='./',
-    help='''Path to the directory where the results are to
+parser.add_argument('--results-directory',
+                    type=str,
+                    default='./',
+                    help='''Path to the directory where the results are to
                     be stored.''')
-parser.add_argument(
-    '--train-folder',
-    type=str,
-    default='train',
-    help='''Name of the folder in which the training samples
+parser.add_argument('--train-folder',
+                    type=str,
+                    default='train',
+                    help='''Name of the folder in which the training samples
                     are to be found.''')
-parser.add_argument(
-    '--train-annotations-folder',
-    type=str,
-    default='train_annotations',
-    help='''Name of the folder containing the annotations
+parser.add_argument('--train-annotations-folder',
+                    type=str,
+                    default='train_annotations',
+                    help='''Name of the folder containing the annotations
                     corresponding to the training samples.''')
-parser.add_argument(
-    '--validation-folder',
-    type=str,
-    default='validation',
-    help='''Name of the folder in which the validation samples
+parser.add_argument('--validation-folder',
+                    type=str,
+                    default='validation',
+                    help='''Name of the folder in which the validation samples
                     are to be found.''')
-parser.add_argument(
-    '--validation-annotations-folder',
-    type=str,
-    default='validation_annotations',
-    help='''Name of the folder containing the annotations
+parser.add_argument('--validation-annotations-folder',
+                    type=str,
+                    default='validation_annotations',
+                    help='''Name of the folder containing the annotations
                     corresponding to the validation samples.''')
-parser.add_argument(
-    '--ignore-class-name',
-    type=str,
-    default='ambiguous',
-    help='''Name of the class that's representing
+parser.add_argument('--ignore-class-name',
+                    type=str,
+                    default='ambiguous',
+                    help='''Name of the class that's representing
                     the parts of an image that should be ignored
                     during evaluation and training.''')
 parser.add_argument(
@@ -253,22 +242,20 @@ config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 
 input_tensor = tf.placeholder(tf.float32, shape=[None, None, None, 3])
-output_tensor = tf.placeholder(
-    tf.float32, shape=[None, None, None, number_of_classes])
+output_tensor = tf.placeholder(tf.float32,
+                               shape=[None, None, None, number_of_classes])
 
-model_builder = ModelBuilder(
-    number_of_classes=number_of_classes,
-    input_size=INPUT_SIZE,
-    backbone_name=BACKBONE_NAME,
-    is_training=True)
-predictions_tensor, init_fn = model_builder.build(
-    model_name=MODEL_NAME, inputs=input_tensor)
+model_builder = ModelBuilder(number_of_classes=number_of_classes,
+                             input_size=INPUT_SIZE,
+                             backbone_name=BACKBONE_NAME,
+                             is_training=True)
+predictions_tensor, init_fn = model_builder.build(model_name=MODEL_NAME,
+                                                  inputs=input_tensor)
 
 # Take away the masked out values from evaluation.
 weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
-unc = tf.where(
-    tf.equal(tf.argmax(output_tensor, axis=-1), ignore_class_label),
-    tf.zeros(shape=weights_shape), tf.ones(shape=weights_shape))
+unc = tf.where(tf.equal(tf.argmax(output_tensor, axis=-1), ignore_class_label),
+               tf.zeros(shape=weights_shape), tf.ones(shape=weights_shape))
 
 # Define the accuracy metric: Mean Intersection Over Union.
 miou, update_miou_op = slim.metrics.streaming_mean_iou(
@@ -279,13 +266,15 @@ miou, update_miou_op = slim.metrics.streaming_mean_iou(
 
 adapted_loss = tf.nn.softmax_cross_entropy_with_logits_v2
 loss = tf.reduce_mean(
-    tf.losses.compute_weighted_loss(
-        weights=tf.cast(unc, tf.float32),
-        losses=adapted_loss(logits=predictions_tensor, labels=output_tensor)))
+    tf.losses.compute_weighted_loss(weights=tf.cast(unc, tf.float32),
+                                    losses=adapted_loss(
+                                        logits=predictions_tensor,
+                                        labels=output_tensor)))
 
 opt = tf.train.RMSPropOptimizer(
-    learning_rate=LEARNING_RATE, decay=0.995, momentum=0.9).minimize(
-        loss, var_list=[var for var in tf.trainable_variables()])
+    learning_rate=LEARNING_RATE, decay=0.995,
+    momentum=0.9).minimize(loss,
+                           var_list=[var for var in tf.trainable_variables()])
 
 session.run(tf.global_variables_initializer())
 
@@ -312,22 +301,21 @@ validation_annotation_paths = list(subset_associations['validation'].values())
 
 random.seed(RANDOM_SEED)
 number_of_training_samples = len(train_image_paths)
-number_of_used_training_samples = int(
-    TRAINING_RATIO * number_of_training_samples)
-training_indices = random.sample(
-    range(number_of_training_samples), max(1, number_of_used_training_samples))
+number_of_used_training_samples = int(TRAINING_RATIO *
+                                      number_of_training_samples)
+training_indices = random.sample(range(number_of_training_samples),
+                                 max(1, number_of_used_training_samples))
 subset_associations['train'] = {
     train_image_paths[index]: train_annotation_paths[index]
     for index in training_indices
 }
-number_of_used_training_samples = len(
-    list(subset_associations['train'].keys()))
+number_of_used_training_samples = len(list(
+    subset_associations['train'].keys()))
 number_of_validation_samples = len(validation_image_paths)
-number_of_used_validation_samples = int(
-    VALIDATION_RATIO * number_of_validation_samples)
-validation_indices = random.sample(
-    range(number_of_validation_samples),
-    max(1, number_of_used_validation_samples))
+number_of_used_validation_samples = int(VALIDATION_RATIO *
+                                        number_of_validation_samples)
+validation_indices = random.sample(range(number_of_validation_samples),
+                                   max(1, number_of_used_validation_samples))
 subset_associations['validation'] = {
     validation_image_paths[index]: validation_annotation_paths[index]
     for index in validation_indices
@@ -365,7 +353,7 @@ train_augmenter, train_batch_loader, number_of_training_steps = get_batch_loader
     input_size=INPUT_SIZE,
     subset_associations=subset_associations['train'],
     class_colors=class_colors,
-    strategy=AUGMENTATION_STRATEGY) # Use augmentation only on the train set.
+    strategy=AUGMENTATION_STRATEGY)  # Use augmentation only on the train set.
 
 validation_augmenter, validation_batch_loader, number_of_validation_steps = get_batch_loader_for_subset(
     number_of_epochs=NUMBER_OF_EPOCHS,
@@ -374,25 +362,23 @@ validation_augmenter, validation_batch_loader, number_of_validation_steps = get_
     subset_associations=subset_associations['validation'],
     class_colors=class_colors)
 
-training_dataset = generate_dataset(
-    train_augmenter,
-    input_size=INPUT_SIZE,
-    number_of_epochs=NUMBER_OF_EPOCHS,
-    batch_size=BATCH_SIZE,
-    number_of_cpus=NUMBER_OF_CPUS,
-    number_of_gpus=NUMBER_OF_GPUS,
-    class_colors=class_colors)
+training_dataset = generate_dataset(train_augmenter,
+                                    input_size=INPUT_SIZE,
+                                    number_of_epochs=NUMBER_OF_EPOCHS,
+                                    batch_size=BATCH_SIZE,
+                                    number_of_cpus=NUMBER_OF_CPUS,
+                                    number_of_gpus=NUMBER_OF_GPUS,
+                                    class_colors=class_colors)
 training_iterator = training_dataset.make_one_shot_iterator()
 next_training_batch = training_iterator.get_next()
 
-validation_dataset = generate_dataset(
-    validation_augmenter,
-    input_size=INPUT_SIZE,
-    number_of_epochs=NUMBER_OF_EPOCHS,
-    batch_size=BATCH_SIZE,
-    number_of_cpus=NUMBER_OF_CPUS,
-    number_of_gpus=NUMBER_OF_GPUS,
-    class_colors=class_colors)
+validation_dataset = generate_dataset(validation_augmenter,
+                                      input_size=INPUT_SIZE,
+                                      number_of_epochs=NUMBER_OF_EPOCHS,
+                                      batch_size=BATCH_SIZE,
+                                      number_of_cpus=NUMBER_OF_CPUS,
+                                      number_of_gpus=NUMBER_OF_GPUS,
+                                      class_colors=class_colors)
 validation_iterator = validation_dataset.make_one_shot_iterator()
 next_validation_batch = validation_iterator.get_next()
 
@@ -405,8 +391,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     start_time = time.time()
     epoch_start_time = time.time()
 
-    for current_step_index in range(
-            number_of_training_steps // NUMBER_OF_GPUS):
+    for current_step_index in range(number_of_training_steps //
+                                    NUMBER_OF_GPUS):
         for k in range(NUMBER_OF_GPUS):
             with tf.device('/gpu:{}'.format(k)):
                 images_batch, annotations_batch = session.run(
@@ -436,8 +422,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
     if epoch % VALIDATE_EVERY == 0:
         segmentation_evaluator.initialize_history()
 
-        for validation_step in range(
-                number_of_validation_steps // NUMBER_OF_GPUS):
+        for validation_step in range(number_of_validation_steps //
+                                     NUMBER_OF_GPUS):
             for k in range(NUMBER_OF_GPUS):
                 with tf.device('/gpu:{}'.format(k)):
                     session.run(tf.local_variables_initializer())
@@ -486,8 +472,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                         plt.imshow(output_image)
                         plt.title('IoU = {:0.3f}'.format(computed_miou))
                         plt.savefig(
-                            Path('./tmp/', '{}-{}.png'.format(
-                                epoch, validation_step)))
+                            Path('./tmp/',
+                                 '{}-{}.png'.format(epoch, validation_step)))
                         plt.close()
 
         summary_formatter.update(
