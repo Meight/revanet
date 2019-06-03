@@ -2,12 +2,17 @@ from pathlib import Path
 
 from models.BiSeNet import build_bisenet
 from models.DeepLabv3_plus import build_deeplabv3_plus
+from models.FC_DenseNet import (build_fc_densenet56, build_fc_densenet67,
+                                build_fc_densenet103)
 from models.GCN import build_gcn
 
 AVAILABLE_MODELS = {
     'BiSeNet': build_bisenet,
     'DeepLabv3_plus': build_deeplabv3_plus,
-    'GCN': build_gcn
+    'GCN': build_gcn,
+    'FC-DenseNet56': build_fc_densenet56,
+    'FC-DenseNet67': build_fc_densenet67,
+    'FC-DenseNet103': build_fc_densenet103
 }
 
 
