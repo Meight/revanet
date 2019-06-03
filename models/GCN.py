@@ -66,7 +66,7 @@ def global_conv_block(inputs, n_filters=21, size=3):
 def build_gcn(inputs,
               number_of_classes,
               weights_directory,
-              backbone_name,
+              backbone_name="ResNet101",
               weight_decay=1e-5,
               is_training=True,
               upscaling_method="bilinear"):
