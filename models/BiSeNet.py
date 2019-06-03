@@ -1,11 +1,13 @@
 import tensorflow as tf
 from tensorflow.contrib import slim
-
 from utils.backbones import BackboneBuilder
 
 
 def upsampling(inputs, scale):
-    return tf.image.resize_bilinear(inputs, size=[tf.shape(inputs)[1] * scale, tf.shape(inputs)[2] * scale])
+    return tf.image.resize_bilinear(
+        inputs,
+        size=[tf.shape(inputs)[1] * scale,
+              tf.shape(inputs)[2] * scale])
 
 
 def conv_upscale_block(inputs, n_filters, kernel_size=None, scale=2):
@@ -13,7 +15,11 @@ def conv_upscale_block(inputs, n_filters, kernel_size=None, scale=2):
         kernel_size = [3, 3]
 
     net = tf.nn.relu(slim.batch_norm(inputs, fused=True))
-    net = slim.conv2d_transpose(net, n_filters, kernel_size=[3, 3], stride=[scale, scale], activation_fn=None)
+    net = slim.conv2d_transpose(net,
+                                n_filters,
+                                kernel_size=[3, 3],
+                                stride=[scale, scale],
+                                activation_fn=None)
     return net
 
 
@@ -21,7 +27,12 @@ def conv2d_block(inputs, n_filters, kernel_size=None, strides=1):
     if kernel_size is None:
         kernel_size = [3, 3]
 
-    net = slim.conv2d(inputs, n_filters, kernel_size, stride=[strides, strides], activation_fn=None, normalizer_fn=None)
+    net = slim.conv2d(inputs,
+                      n_filters,
+                      kernel_size,
+                      stride=[strides, strides],
+                      activation_fn=None,
+                      normalizer_fn=None)
     net = tf.nn.relu(slim.batch_norm(net, fused=True))
     return net
 
@@ -58,10 +69,15 @@ def feature_fusion_module(input_1, input_2, n_filters):
     return net
 
 
-def build_bisenet(inputs, number_of_classes, weights_directory, backbone_name="ResNet101", is_training=True):
-    logits, end_points, scope, init_fn = BackboneBuilder(backbone_name=backbone_name,
-                                                         is_training=is_training,
-                                                         weights_directory=weights_directory).build(inputs=inputs)
+def build_bisenet(inputs,
+                  number_of_classes,
+                  weights_directory,
+                  backbone_name="ResNet101",
+                  is_training=True):
+    logits, end_points, scope, init_fn = BackboneBuilder(
+        backbone_name=backbone_name,
+        is_training=is_training,
+        weights_directory=weights_directory).build(inputs=inputs)
 
     # Context path.
     net_4 = attention_refinement_module(end_points['pool4'], n_filters=512)
@@ -72,9 +88,18 @@ def build_bisenet(inputs, number_of_classes, weights_directory, backbone_name="R
     net_5_scaled = tf.multiply(global_channels, net_5)
 
     # Spatial path.
-    spatial_net = conv2d_block(inputs, n_filters=64, kernel_size=[3, 3], strides=2)
-    spatial_net = conv2d_block(spatial_net, n_filters=128, kernel_size=[3, 3], strides=2)
-    spatial_net = conv2d_block(spatial_net, n_filters=256, kernel_size=[3, 3], strides=2)
+    spatial_net = conv2d_block(inputs,
+                               n_filters=64,
+                               kernel_size=[3, 3],
+                               strides=2)
+    spatial_net = conv2d_block(spatial_net,
+                               n_filters=128,
+                               kernel_size=[3, 3],
+                               strides=2)
+    spatial_net = conv2d_block(spatial_net,
+                               n_filters=256,
+                               kernel_size=[3, 3],
+                               strides=2)
 
     # Path combination.
     net_4 = upsampling(net_4, scale=2)
@@ -82,9 +107,14 @@ def build_bisenet(inputs, number_of_classes, weights_directory, backbone_name="R
 
     context_net = tf.concat([net_4, net_5_scaled], axis=-1)
 
-    net = feature_fusion_module(input_1=spatial_net, input_2=context_net, n_filters=number_of_classes)
+    net = feature_fusion_module(input_1=spatial_net,
+                                input_2=context_net,
+                                n_filters=number_of_classes)
     net = upsampling(net, scale=8)
 
-    net = slim.conv2d(net, number_of_classes, [1, 1], activation_fn=None, scope='logits')
+    net = slim.conv2d(net,
+                      number_of_classes, [1, 1],
+                      activation_fn=None,
+                      scope='logits')
 
     return net, init_fn
