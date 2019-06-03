@@ -88,7 +88,7 @@ parser.add_argument('--model-name',
                     default="BiSeNet",
                     choices=[
                         'BiSeNet', 'DeepLabv3_plus', 'GCN', 'FC-DenseNet56',
-                        'FC-DenseNet67', 'FC-DenseNet103'
+                        'FC-DenseNet67', 'FC-DenseNet103', 'AdapNet'
                     ],
                     help='The model to train (default: %(default)s).')
 parser.add_argument('--backbone-name',

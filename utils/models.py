@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from models.AdapNet import build_adapnet
 from models.BiSeNet import build_bisenet
 from models.DeepLabv3_plus import build_deeplabv3_plus
 from models.FC_DenseNet import (build_fc_densenet56, build_fc_densenet67,
@@ -12,7 +13,8 @@ AVAILABLE_MODELS = {
     'GCN': build_gcn,
     'FC-DenseNet56': build_fc_densenet56,
     'FC-DenseNet67': build_fc_densenet67,
-    'FC-DenseNet103': build_fc_densenet103
+    'FC-DenseNet103': build_fc_densenet103,
+    'AdapNet': build_adapnet
 }
 
 
