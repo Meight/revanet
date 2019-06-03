@@ -7,17 +7,18 @@ import time
 from pathlib import Path
 
 import numpy as np
-import tensorflow as tf
 
-from utils import utils, segmentation
+import tensorflow as tf
+from utils import segmentation, utils
 from utils.arguments import ratio
 from utils.augmentation import augment_data
 from utils.dataset import check_dataset_correctness
 from utils.files import retrieve_dataset_information
 from utils.models import ModelBuilder
 from utils.naming import FilesFormatterFactory
-from utils.utils import gather_multi_label_data, \
-    get_available_annotation_resized_tensors_for_image, prepare_data
+from utils.utils import (gather_multi_label_data,
+                         get_available_annotation_resized_tensors_for_image,
+                         prepare_data)
 from utils.validation import SegmentationEvaluator
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -90,12 +91,12 @@ parser.add_argument(
     '--model-name',
     type=str,
     default="FC-DenseNet56",
-    help='The model you are using. See model_builder.py for supported models')
+    help='The model to train.')
 parser.add_argument(
     '--backbone-name',
     type=str,
     default="ResNet101",
-    help='The backbone to use. See frontend_builder.py for supported models')
+    help='The backbone to use.')
 parser.add_argument(
     '--results-directory',
     type=str,
