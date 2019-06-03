@@ -7,7 +7,6 @@ import time
 from pathlib import Path
 
 import numpy as np
-
 import tensorflow as tf
 from utils import segmentation, utils
 from utils.arguments import ratio
@@ -37,45 +36,42 @@ parser.add_argument(
     help=
     'Whether or not a threshold should be applied to validate predictions during multi-label'
     'classification.')
-parser.add_argument(
-    '--learning-rate', type=float, default=0.0001, help='Learning rate to use')
-parser.add_argument(
-    '--number-of-epochs',
-    type=int,
-    default=300,
-    help='Number of epochs to train for')
-parser.add_argument(
-    '--first-epoch',
-    type=int,
-    default=0,
-    help='Start counting epochs from this number')
-parser.add_argument(
-    '--save-weights-every',
-    type=int,
-    default=5,
-    help='How often to save checkpoints (epochs)')
-parser.add_argument(
-    '--validate-every',
-    type=int,
-    default=1,
-    help='How often to perform validation (epochs)')
-parser.add_argument(
-    '--continue-training',
-    action='store_true',
-    default=False,
-    help='Whether to continue training from a checkpoint')
-parser.add_argument(
-    '--dataset-name',
-    type=str,
-    default='voc-chh',
-    help='Dataset you are using.')
-parser.add_argument(
-    '--input-size',
-    type=int,
-    default=512,
-    help='Box six of input image to network')
-parser.add_argument(
-    '--batch-size', type=int, default=1, help='Number of images in each batch')
+parser.add_argument('--learning-rate',
+                    type=float,
+                    default=0.0001,
+                    help='Learning rate to use')
+parser.add_argument('--number-of-epochs',
+                    type=int,
+                    default=300,
+                    help='Number of epochs to train for')
+parser.add_argument('--first-epoch',
+                    type=int,
+                    default=0,
+                    help='Start counting epochs from this number')
+parser.add_argument('--save-weights-every',
+                    type=int,
+                    default=5,
+                    help='How often to save checkpoints (epochs)')
+parser.add_argument('--validate-every',
+                    type=int,
+                    default=1,
+                    help='How often to perform validation (epochs)')
+parser.add_argument('--continue-training',
+                    action='store_true',
+                    default=False,
+                    help='Whether to continue training from a checkpoint')
+parser.add_argument('--dataset-name',
+                    type=str,
+                    default='voc-chh',
+                    help='Dataset you are using.')
+parser.add_argument('--input-size',
+                    type=int,
+                    default=512,
+                    help='Box six of input image to network')
+parser.add_argument('--batch-size',
+                    type=int,
+                    default=1,
+                    help='Number of images in each batch')
 parser.add_argument(
     '--training-ratio',
     type=ratio,
@@ -87,16 +83,16 @@ parser.add_argument(
     default=1.0,
     help='The ratio of validation samples to use to perform actual validation.'
 )
-parser.add_argument(
-    '--model-name',
-    type=str,
-    default="FC-DenseNet56",
-    help='The model to train.')
-parser.add_argument(
-    '--backbone-name',
-    type=str,
-    default="ResNet101",
-    help='The backbone to use.')
+parser.add_argument('--model-name',
+                    type=str,
+                    default="BiSeNet",
+                    choices=['BiSeNet', 'DeepLabv3_plus'],
+                    help='The model to train (default: %(default)s).')
+parser.add_argument('--backbone-name',
+                    type=str,
+                    default="ResNet101",
+                    choices=['ResNet101'],
+                    help='The backbone to use (default: %(default)s).')
 parser.add_argument(
     '--results-directory',
     type=str,
@@ -212,16 +208,15 @@ config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 
 input_tensor = tf.placeholder(tf.float32, shape=[None, None, None, 3])
-output_tensor = tf.placeholder(
-    tf.float32, shape=[None, None, None, number_of_classes])
+output_tensor = tf.placeholder(tf.float32,
+                               shape=[None, None, None, number_of_classes])
 
-model_builder = ModelBuilder(
-    number_of_classes=number_of_classes,
-    input_size=INPUT_SIZE,
-    backbone_name=BACKBONE_NAME,
-    is_training=True)
-predictions_tensor, init_fn = model_builder.build(
-    model_name=MODEL_NAME, inputs=input_tensor)
+model_builder = ModelBuilder(number_of_classes=number_of_classes,
+                             input_size=INPUT_SIZE,
+                             backbone_name=BACKBONE_NAME,
+                             is_training=True)
+predictions_tensor, init_fn = model_builder.build(model_name=MODEL_NAME,
+                                                  inputs=input_tensor)
 
 # total_summary = tf.summary.image('images',
 #                                  tf.concat(axis=2, values=[tf.cast(input_tensor, tf.uint8),
@@ -237,24 +232,24 @@ predictions_tensor, init_fn = model_builder.build(
 
 if not IS_MULTI_LABEL_CLASSIFICATION:
     weights_shape = (BATCH_SIZE, INPUT_SIZE, INPUT_SIZE)
-    unc = tf.where(
-        tf.equal(tf.reduce_sum(output_tensor, axis=-1), 0),
-        tf.zeros(shape=weights_shape), tf.ones(shape=weights_shape))
+    unc = tf.where(tf.equal(tf.reduce_sum(output_tensor, axis=-1), 0),
+                   tf.zeros(shape=weights_shape), tf.ones(shape=weights_shape))
 
     adapted_loss = tf.nn.softmax_cross_entropy_with_logits_v2
     loss = tf.reduce_mean(
-        tf.losses.compute_weighted_loss(
-            weights=tf.cast(unc, tf.float32),
-            losses=adapted_loss(
-                logits=predictions_tensor, labels=output_tensor)))
+        tf.losses.compute_weighted_loss(weights=tf.cast(unc, tf.float32),
+                                        losses=adapted_loss(
+                                            logits=predictions_tensor,
+                                            labels=output_tensor)))
 else:
     adapted_loss = tf.nn.sigmoid_cross_entropy_with_logits
     loss = tf.reduce_mean(
         adapted_loss(logits=predictions_tensor, labels=output_tensor))
 
 opt = tf.train.RMSPropOptimizer(
-    learning_rate=LEARNING_RATE, decay=0.995, momentum=0.9).minimize(
-        loss, var_list=[var for var in tf.trainable_variables()])
+    learning_rate=LEARNING_RATE, decay=0.995,
+    momentum=0.9).minimize(loss,
+                           var_list=[var for var in tf.trainable_variables()])
 
 session.run(tf.global_variables_initializer())
 
@@ -291,16 +286,15 @@ validation_image_paths = list(subset_associations['validation'].keys())
 
 random.seed(RANDOM_SEED)
 number_of_training_samples = len(train_image_paths)
-number_of_used_training_samples = int(
-    TRAINING_RATIO * number_of_training_samples)
-training_indices = random.sample(
-    range(number_of_training_samples), max(1, number_of_used_training_samples))
+number_of_used_training_samples = int(TRAINING_RATIO *
+                                      number_of_training_samples)
+training_indices = random.sample(range(number_of_training_samples),
+                                 max(1, number_of_used_training_samples))
 number_of_validation_samples = len(validation_image_paths)
-number_of_used_validation_samples = int(
-    VALIDATION_RATIO * number_of_validation_samples)
-validation_indices = random.sample(
-    range(number_of_validation_samples),
-    max(1, number_of_used_validation_samples))
+number_of_used_validation_samples = int(VALIDATION_RATIO *
+                                        number_of_validation_samples)
+validation_indices = random.sample(range(number_of_validation_samples),
+                                   max(1, number_of_used_validation_samples))
 
 ADDITIONAL_INFO = {
     'results_directory': RESULTS_DIRECTORY,
@@ -373,8 +367,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
 
                 input_image = np.float32(input_image) / 255.0
                 output_image = np.float32(
-                    segmentation.image_to_one_hot(
-                        annotation=output_image, class_colors=class_colors))
+                    segmentation.image_to_one_hot(annotation=output_image,
+                                                  class_colors=class_colors))
 
                 input_image_batch.append(np.expand_dims(input_image, axis=0))
                 output_image_batch.append(np.expand_dims(output_image, axis=0))
@@ -440,8 +434,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 output_image = output_image[valid_indices, :]
                 output_image = segmentation.one_hot_to_image(output_image)
 
-                segmentation_evaluator.evaluate(
-                    prediction=output_image, annotation=ground_truth)
+                segmentation_evaluator.evaluate(prediction=output_image,
+                                                annotation=ground_truth)
             else:
                 n_encoded_masks = get_available_annotation_resized_tensors_for_image(
                     INPUT_SIZE, INPUT_SIZE, output_image_path,
@@ -450,8 +444,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 ground_truth = random.choice(
                     n_encoded_masks
                 )  # (INPUT_SIZE, INPUT_SIZE, NUMBER_OF_CLASSES)
-                input_image, _ = utils.resize_to_size(
-                    input_image, desired_size=INPUT_SIZE)
+                input_image, _ = utils.resize_to_size(input_image,
+                                                      desired_size=INPUT_SIZE)
 
                 input_image = np.expand_dims(input_image, axis=0) / 255.0
 
@@ -466,8 +460,8 @@ for epoch in range(FIRST_EPOCH, NUMBER_OF_EPOCHS):
                 else:
                     output_image = segmentation.one_hot_to_image(output_image)
 
-                segmentation_evaluator.evaluate(
-                    prediction=output_image, annotation=ground_truth)
+                segmentation_evaluator.evaluate(prediction=output_image,
+                                                annotation=ground_truth)
 
         summary_formatter.update(
             current_epoch=epoch,
