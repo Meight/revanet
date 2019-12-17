@@ -6,7 +6,7 @@ matplotlib==3.0.2
 numpy==1.15.4
 opencv-python==3.4.5.20
 pathlib==1.0.1
-Pillow==5.4.1
+Pillow==6.2.0
 pyparsing==2.3.0
 python-dateutil==2.7.5
 six==1.12.0
